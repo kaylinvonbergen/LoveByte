@@ -22,6 +22,7 @@ import androidx.navigation.navArgument
 
 
 import com.example.lovebyte.ui.screens.HomeScreen
+import com.example.lovebyte.ui.screens.CharSelectScreen
 
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.ProgrammingLanguage
@@ -61,17 +62,24 @@ class MainActivity : ComponentActivity() {
                         // 2. Home, kind of like the title screen
                         composable("home") {
                             // for now, we create a dummy state so it compiles
+                            // TODO: fix so it's not just using the dummy state
                             val dummyState = LoveByteState(
                                 weatherDescription = "Sunny",
                                 cityName = "Boston",
                                 currentLanguage = ProgrammingLanguage.PYTHON,
-                                currentChapter = 3
+                                progressMap = mapOf(
+                                    ProgrammingLanguage.PYTHON to 9,
+                                    ProgrammingLanguage.KOTLIN to 4
+                                )
                             )
 
                             HomeScreen(
                                 state = dummyState,
                                 onContinueClicked = {
-                                    navController.navigate("chapter/${dummyState.currentLanguage.name}/3")
+                                    // use the getter property for the navigation route
+                                    val currentLang = dummyState.currentLanguage.name
+                                    val chapterId = dummyState.currentChapter
+                                    navController.navigate("chapter/$currentLang/$chapterId")
                                 },
                                 onSwapClicked = {
                                     navController.navigate("charselect")
@@ -81,9 +89,28 @@ class MainActivity : ComponentActivity() {
 
                         // 3. CharacterSelection
                         composable("charselect") {
-                           CharSelectScreen(onCharacterSelected = { lang: String ->
-                                navController.navigate("timeline/$lang")
-                            })
+                            // We pass the dummyState so the screen knows the weather and current progress
+                            // TODO: change to take real state
+                            val dummyState = LoveByteState(
+                                weatherDescription = "Sunny",
+                                cityName = "Boston",
+                                currentLanguage = ProgrammingLanguage.PYTHON,
+                                progressMap = mapOf(
+                                    ProgrammingLanguage.PYTHON to 9,
+                                    ProgrammingLanguage.KOTLIN to 4
+                                )
+                            )
+
+                            CharSelectScreen(
+                                state = dummyState,
+                                onCharacterSelected = { selectedLanguage ->
+                                    // selectedLanguage is now the Enum object, so we use .name for the route
+                                    navController.navigate("timeline/${selectedLanguage.name}")
+                                },
+                                onBackPressed = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
 
                         // 4. Timeline (Chapter Selection)
