@@ -3,13 +3,20 @@ package com.example.lovebyte.data.model
 data class Chapter(
     val id: Int,
     val title: String,
-    val description: String,
-    val language: ProgrammingLanguage,
     val startNodeId: Int,
     val isLocked: Boolean = true,
     val difficulty: String = "Beginner",
-    val progress: Float = 0.0f // useful for Home Screen Progress Bar!
+    val description: String = "",
+    val language: ProgrammingLanguage = ProgrammingLanguage.NONE,
+    val progress: Float = 0.0f
+
 )
+
+data class Section(
+    val title: String,
+    val chapters: List<Chapter>
+)
+
 
 data class DialogueNode(
     val id: Int,

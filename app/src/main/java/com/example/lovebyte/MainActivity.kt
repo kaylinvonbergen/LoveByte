@@ -23,6 +23,7 @@ import androidx.navigation.navArgument
 
 import com.example.lovebyte.ui.screens.HomeScreen
 import com.example.lovebyte.ui.screens.CharSelectScreen
+import com.example.lovebyte.ui.screens.TimelineScreen
 
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.ProgrammingLanguage
@@ -115,10 +116,38 @@ class MainActivity : ComponentActivity() {
 
                         // 4. Timeline (Chapter Selection)
                         composable("timeline/{language}") { backStackEntry ->
-                            val lang = backStackEntry.arguments?.getString("language") ?: "python"
-                            TimelineScreen(language = lang, onChapterSelected = { chId: Int ->
-                                navController.navigate("chapter/$lang/$chId")
-                            })
+                            // extract the language string from the URL
+                            val langName = backStackEntry.arguments?.getString("language") ?: "PYTHON"
+
+                            // convert the string back to our Enum
+                            val selectedLang = try {
+                                ProgrammingLanguage.valueOf(langName)
+                            } catch (e: Exception) {
+                                ProgrammingLanguage.PYTHON
+                            }
+
+                            // create a dummy state (
+                            // update the currentLanguage to match the one the user clicked on
+                            // TODO: un-dummy the state
+                            val dummyState = LoveByteState(
+                                weatherDescription = "Sunny",
+                                cityName = "Boston",
+                                currentLanguage = selectedLang,
+                                progressMap = mapOf(
+                                    ProgrammingLanguage.PYTHON to 9,
+                                    ProgrammingLanguage.KOTLIN to 4
+                                )
+                            )
+
+                            TimelineScreen(
+                                state = dummyState,
+                                onChapterSelected = { chId ->
+                                    navController.navigate("chapter/${selectedLang.name}/$chId")
+                                },
+                                onBackPressed = {
+                                    navController.popBackStack()
+                                }
+                            )
                         }
 
                         // 5. Chapter (The Game + Minigame)

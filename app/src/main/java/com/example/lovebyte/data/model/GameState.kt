@@ -19,7 +19,52 @@ enum class ProgrammingLanguage(
         displayName = "None",
         totalChapters = 0,
         description = ""
-    )
+    );
+
+    val sections: List<Section>
+        get() = when (this) {
+            PYTHON -> listOf(
+                Section("The Basics", listOf(
+                    Chapter(id = 1, title = "Print & Comments", startNodeId = 101),
+                    Chapter(id = 2, title = "Variables & Types", startNodeId = 201),
+                    Chapter(id = 3, title = "Arithmetic Operators", startNodeId = 301)
+                )),
+                Section("Control Flow", listOf(
+                    Chapter(id = 4, title = "If Statements", startNodeId = 401),
+                    Chapter(id = 5, title = "Logical Operators", startNodeId = 501),
+                    Chapter(id = 6, title = "The 'In' Keyword", startNodeId = 601)
+                )),
+                Section("Data Structures", listOf(
+                    Chapter(id = 7, title = "Lists & Indexing", startNodeId = 701),
+                    Chapter(id = 8, title = "Dictionaries", startNodeId = 801),
+                    Chapter(id = 9, title = "Tuples & Sets", startNodeId = 901)
+                )),
+                Section("Modular Magic", listOf(
+                    Chapter(id = 10, title = "Defining Functions", startNodeId = 1001),
+                    Chapter(id = 11, title = "Importing Modules", startNodeId = 1101),
+                    Chapter(id = 12, title = "The Final Project", startNodeId = 1201)
+                ))
+            )
+            KOTLIN -> listOf(
+                Section("First Steps", listOf(
+                    Chapter(id = 1, title = "Val vs Var", startNodeId = 2001),
+                    Chapter(id = 2, title = "Null Safety Basics", startNodeId = 2101),
+                    Chapter(id = 3, title = "String Templates", startNodeId = 2201)
+                )),
+                Section("Functional Fun", listOf(
+                    Chapter(id = 4, title = "Lambda Expressions", startNodeId = 2301),
+                    Chapter(id = 5, title = "Higher-Order Functions", startNodeId = 2401),
+                    Chapter(id = 6, title = "Extension Functions", startNodeId = 2501)
+                )),
+                Section("Android Power", listOf(
+                    Chapter(id = 7, title = "State Management", startNodeId = 2601),
+                    Chapter(id = 8, title = "Jetpack Compose Intro", startNodeId = 2701),
+                    Chapter(id = 9, title = "Coroutines", startNodeId = 2801),
+                    Chapter(id = 10, title = "Deployment", startNodeId = 2901)
+                ))
+            )
+            NONE -> emptyList()
+        }
 }
 
 data class LoveByteState(
