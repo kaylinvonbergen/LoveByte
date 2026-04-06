@@ -224,6 +224,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // 6. Settings
+                        // TODO: finish this later when we have more setting we'll care about
                         composable("settings") {
                             SettingsScreen(state = gameState)
                         }
