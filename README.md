@@ -14,7 +14,7 @@
 
 
 ## Major TODOs for next time 
-- [ ] "cute-ify" the UI, it's currently functional, but not pretty
+- [ ] "Cute-ify" the UI, it's currently functional, but not pretty
 - [ ] Polish UX, quality of life updates to navigation
 - [ ] Work on game content
 - [ ] Develop further minigames
@@ -23,6 +23,7 @@
 - [ ] Potentially implement audio?
 - [ ] Implement settings screen
 - [ ] Work on UI layout for horizontal modes and tablets
+- [ ] Adjust sensitivity for minigame with real device 
 
 ## AI Disclosures
 
