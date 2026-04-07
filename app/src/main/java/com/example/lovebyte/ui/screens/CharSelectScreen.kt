@@ -34,13 +34,11 @@ fun CharSelectScreen(
     // inside CharSelectScreen
     val languages = ProgrammingLanguage.entries.filter { it != ProgrammingLanguage.NONE }
 
-    // this identifies the character message for the header
-    val heroLanguage = remember(state.currentLanguage) {
-        if (state.currentLanguage != ProgrammingLanguage.NONE) {
-            state.currentLanguage
-        } else {
-            languages.randomOrNull() ?: ProgrammingLanguage.NONE
-        }
+// this identifies the character message for the header
+    val heroLanguage = if (state.currentLanguage != ProgrammingLanguage.NONE) {
+        state.currentLanguage
+    } else {
+        ProgrammingLanguage.PYTHON
     }
     val pagerState = androidx.compose.foundation.pager.rememberPagerState { languages.size }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
@@ -83,8 +81,15 @@ fun CharSelectScreen(
 
             Spacer(modifier = Modifier.width(16.dp))
 
+            val headerText =
+                if (state.cityName.isNotBlank() && state.weatherDescription.isNotBlank()) {
+                    "It's ${state.weatherDescription.lowercase()} in ${state.cityName}! Do some ${heroLanguage.displayName}!"
+                } else {
+                    "Hey, you're back! Time to learn some ${heroLanguage.displayName}!"
+                }
+
             Text(
-                text = "It's ${state.weatherDescription.lowercase()}! Do some ${heroLanguage.displayName}!",
+                text = headerText,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f)
             )
@@ -115,8 +120,9 @@ fun CharSelectScreen(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 val lang = languages[page]
-                val progress = state.progressMap[lang] ?: 1
-                val percent = ((progress.toFloat() / lang.totalChapters.toFloat()) * 100).toInt()
+                val currentChapter = state.progressMap[lang] ?: 1
+                val completedChapters = (currentChapter - 1).coerceAtLeast(0)
+                val percent = ((completedChapters.toFloat() / lang.totalChapters.toFloat()) * 100).toInt()
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     // placeholder for sprite

@@ -1,5 +1,5 @@
 package com.example.lovebyte.ui.screens
-//GameScreen.kt
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,7 +14,6 @@ import com.example.lovebyte.ui.components.minigames.SyntaxSliderMinigame
 import com.example.lovebyte.data.content.pythonChapter1Blocks
 import com.example.lovebyte.data.content.narrativeNodes
 
-
 // game screen composable
 @Composable
 fun GameScreen(
@@ -24,7 +23,8 @@ fun GameScreen(
     onChoiceSelected: (DialogueChoice) -> Unit,
     onMinigameResult: (Boolean) -> Unit,
     onBackPressed: () -> Unit,
-    onNextChapter: () -> Unit
+    onNextChapter: () -> Unit,
+    onChapterCompleted: () -> Unit
 ) {
     // node initiation
     // TODO: make this not a dummy node soon
@@ -60,8 +60,8 @@ fun GameScreen(
             blocks = pythonChapter1Blocks,
             onFinished = onMinigameResult
         )
-    // if there's a current node, display the associated text and sprite
-    // means no minigame is active
+        // if there's a current node, display the associated text and sprite
+        // means no minigame is active
     } else if (currentNode != null) {
         Box(modifier = Modifier.fillMaxSize()) {
             Surface(
@@ -105,6 +105,7 @@ fun GameScreen(
                             if (currentNode.nextNodeId != null) {
                                 onNodeAdvanced(currentNode.nextNodeId)
                             } else {
+                                onChapterCompleted()
                                 showChapterComplete = true
                             }
                         }

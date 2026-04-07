@@ -64,6 +64,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onSwapClicked = {
                                     navController.navigate("charselect")
+                                },
+                                onLocationPermissionGranted = { context ->
+                                    viewModel.updateWeatherFromLocation(context)
+                                },
+                                onLocationPermissionDenied = {
+                                    viewModel.setLocationDenied()
                                 }
                             )
                         }
@@ -150,9 +156,13 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNextChapter = {
-                                    viewModel.goToNextChapter()
-                                    val nextCh = viewModel.state.value.currentChapter
-                                    navController.navigate("chapter/${state.currentLanguage.name}/$nextCh")
+                                    val nextCh = state.currentChapter
+                                    val languageName = state.currentLanguage.name
+
+                                    navController.navigate("chapter/$languageName/$nextCh/false")
+                                },
+                                onChapterCompleted = {
+                                    viewModel.markCurrentChapterComplete()
                                 }
                             )
                         }

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.example.lovebyte.data.model.DialogueNode
 import com.example.lovebyte.data.content.narrativeNodes
+import com.example.lovebyte.BuildConfig
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -19,9 +20,49 @@ import com.example.lovebyte.data.repository.ProgressRepository
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
+import com.example.lovebyte.data.repository.WeatherRepository
+import com.example.lovebyte.data.network.RetrofitProvider
+import com.example.lovebyte.data.location.LocationHelper
+
+import android.content.Context
 class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val weatherRepository = WeatherRepository(RetrofitProvider.weatherApi)
+    private val locationHelper = LocationHelper(application)
+
+    fun updateWeatherForCurrentLocation(apiKey: String) {
+        viewModelScope.launch {
+            try {
+                val locationResult = locationHelper.getCurrentLocationResult()
+                if (locationResult == null) {
+                    _state.value = _state.value.copy(
+                        weatherDescription = "Clear",
+                        cityName = "your area"
+                    )
+                    return@launch
+                }
+
+                val weather = weatherRepository.getWeather(
+                    lat = locationResult.latitude,
+                    lon = locationResult.longitude,
+                    apiKey = apiKey
+                )
+
+                _state.value = _state.value.copy(
+                    weatherDescription = weather.weather.firstOrNull()?.main ?: "Clear",
+                    cityName = locationResult.cityName ?: weather.name
+                )
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    errorMessage = "Could not update weather."
+                )
+            }
+        }
+    }
 
 
     private val _state = MutableStateFlow(
@@ -255,6 +296,11 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
+    fun markCurrentChapterComplete() {
+        completeCurrentChapter()
+        saveCurrentProgress()
+    }
+
     fun onMiniGameSuccess() {
         _state.value = _state.value.copy(
             isMiniGameActive = false
@@ -350,8 +396,14 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 put(language, chapterId)
             }
 
-            val restoredNode = if (savedProgress != null && savedProgress.chapterId == chapterId) {
-                savedProgress.dialogueIndex
+            val chapterPrefix = chapterId.toString()
+            val savedNodeMatchesChapter =
+                savedProgress != null &&
+                        savedProgress.chapterId == chapterId &&
+                        savedProgress.dialogueIndex.toString().startsWith(chapterPrefix)
+
+            val restoredNode = if (savedNodeMatchesChapter) {
+                savedProgress!!.dialogueIndex
             } else {
                 (chapterId * 100) + 1
             }
@@ -365,6 +417,47 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 isChapterComplete = false,
                 errorMessage = null
             )
+        }
+    }
+
+    fun setLocationDenied() {
+        _state.value = _state.value.copy(
+            weatherDescription = "",
+            cityName = "",
+            temperature = 0.0
+        )
+    }
+    fun updateWeatherFromLocation(context: android.content.Context) {
+        viewModelScope.launch {
+            try {
+                val locationHelper = LocationHelper(context)
+                val locationResult = locationHelper.getCurrentLocationResult()
+
+                if (locationResult == null) {
+                    setLocationDenied()
+                    return@launch
+                }
+
+                val weather = weatherRepository.getWeather(
+                    lat = locationResult.latitude,
+                    lon = locationResult.longitude,
+                    apiKey = BuildConfig.WEATHER_API_KEY
+                )
+
+                _state.value = _state.value.copy(
+                    cityName = locationResult.cityName ?: weather.name,
+                    weatherDescription = weather.weather.firstOrNull()?.main ?: "",
+                    temperature = weather.main.temp,
+                    errorMessage = null
+                )
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    weatherDescription = "",
+                    cityName = "",
+                    temperature = 0.0,
+                    errorMessage = "Failed to fetch weather."
+                )
+            }
         }
     }
 }

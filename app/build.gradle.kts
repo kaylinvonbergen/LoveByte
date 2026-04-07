@@ -17,8 +17,9 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val apiKey = project.findProperty("WEATHER_API_KEY")?.toString() ?: ""
+        buildConfigField("String", "WEATHER_API_KEY", "\"$apiKey\"")
     }
 
     buildTypes {
@@ -36,6 +37,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -62,11 +64,15 @@ dependencies {
     implementation("androidx.compose.foundation:foundation:1.6.1")
 
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     //room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

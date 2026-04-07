@@ -35,22 +35,53 @@ import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.ProgrammingLanguage
 import com.example.lovebyte.data.model.Chapter
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+
 
 @Composable
 fun HomeScreen(
-    state: LoveByteState, // this will come from the ViewModel
+    state: LoveByteState,
     onContinueClicked: () -> Unit,
-    onSwapClicked: () -> Unit
+    onSwapClicked: () -> Unit,
+    onLocationPermissionGranted: (android.content.Context) -> Unit,
+    onLocationPermissionDenied: () -> Unit,
 ) {
+    // Identify the "onLocationPermissionGranted: () -> Unit,hero" for the header (most recent or random)
+    val heroLanguage = if (state.currentLanguage != ProgrammingLanguage.NONE) {
+        state.currentLanguage
+    } else {
+        ProgrammingLanguage.PYTHON
+    }
 
-    // Identify the "hero" for the header (most recent or random)
-    val languages = ProgrammingLanguage.entries.filter { it != ProgrammingLanguage.NONE }
-    val heroLanguage = remember(state.currentLanguage) {
-        if (state.currentLanguage != ProgrammingLanguage.NONE) {
-            state.currentLanguage
+    val context = LocalContext.current
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            onLocationPermissionGranted(context)
         } else {
-            // pick a random mascot if the user hasn't started a route
-            languages.randomOrNull() ?: ProgrammingLanguage.NONE
+            onLocationPermissionDenied()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                onLocationPermissionGranted(context)
+            }
+            else -> {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
         }
     }
 
@@ -85,8 +116,15 @@ fun HomeScreen(
             Spacer(modifier = Modifier.width(16.dp))
 
             // dynamic message based on Weather :3
+            val greetingText =
+                if (state.cityName.isNotBlank() && state.weatherDescription.isNotBlank()) {
+                    "Hey, it's ${state.weatherDescription.lowercase()} in ${state.cityName}. Perfect time for some ${heroLanguage.displayName}!"
+                } else {
+                    "Hey, you're back! Time to get to ${heroLanguage.displayName}!"
+                }
+
             Text(
-                text = "Hey, it's ${state.weatherDescription.lowercase()} in ${state.cityName}. Perfect time for some ${state.currentLanguage.displayName}!",
+                text = greetingText,
                 style = MaterialTheme.typography.titleMedium
             )
         }
@@ -109,7 +147,7 @@ fun HomeScreen(
             ) {
                 androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = "${state.currentLanguage.displayName} Sprite",
+                        text = "${heroLanguage.displayName} Sprite",
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -136,7 +174,7 @@ fun HomeScreen(
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "${state.currentLanguage.displayName}: Chapter ${state.currentChapter}",
+                        text = "${heroLanguage.displayName}: Chapter ${state.progressMap[heroLanguage] ?: 1}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

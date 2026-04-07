@@ -26,7 +26,13 @@ fun TimelineScreen(
     onChapterSelected: (Int) -> Unit,
     onBackPressed: () -> Unit
 ) {
-    val currentLang = state.currentLanguage
+    val currentLang =
+        if (state.currentLanguage != ProgrammingLanguage.NONE) {
+            state.currentLanguage
+        } else {
+            ProgrammingLanguage.PYTHON
+        }
+
     val sections = currentLang.sections
 
     Scaffold(
@@ -117,11 +123,20 @@ fun TimelineScreen(
                     // the chapters
                     items(section.chapters) { chapter ->
                         val currentProgress = state.progressMap[currentLang] ?: 1
+                        val isCompleted = chapter.id < currentProgress
+                        val isCurrent = chapter.id == currentProgress
+                        val isUnlocked = chapter.id <= currentProgress
+
                         ChapterCard(
                             chapter = chapter,
-                            isCompleted = chapter.id < currentProgress,
-                            isCurrent = chapter.id == currentProgress,
-                            onClick = { onChapterSelected(chapter.id) }
+                            isCompleted = isCompleted,
+                            isCurrent = isCurrent,
+                            isUnlocked = isUnlocked,
+                            onClick = {
+                                if (isUnlocked) {
+                                    onChapterSelected(chapter.id)
+                                }
+                            }
                         )
                     }
                 }
@@ -131,10 +146,17 @@ fun TimelineScreen(
 }
 
 @Composable
-fun ChapterCard(chapter: Chapter, isCompleted: Boolean, isCurrent: Boolean, onClick: () -> Unit) {
+fun ChapterCard(
+    chapter: Chapter,
+    isCompleted: Boolean,
+    isCurrent: Boolean,
+    isUnlocked: Boolean,
+    onClick: () -> Unit
+) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
+        enabled = isUnlocked,
         colors = CardDefaults.cardColors(
             containerColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer
             else MaterialTheme.colorScheme.surface
