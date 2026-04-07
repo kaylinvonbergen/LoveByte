@@ -39,3 +39,15 @@ Gemini generally assisted in finding the Material3/Android/Kotlin/Compose names 
 Gemini was also used to develop placeholder content (info about characters/languages, basic stories, etc.) as good writing is not necessary to develop the functionality of the app. Also silly and honestly decent, these will be replaced down the line when an actual narrative is developed.
 
 AI was also used to quickly polish up and format areas of code that looked messy (due to weird spacing, for example) before committing.
+
+### Kaylin's Portion
+ChatGPT was used throughout development as a debugging and implementation assistant, especially when integrating external systems like location services and the weather API. It helped identify issues such as incorrect API key handling, improper Gradle configuration, and missing function calls that prevented expected behavior. AI was also used to reason through state management bugs, particularly around chapter completion, progression tracking, and navigation edge cases.
+
+Additionally, due to a lack of prior hands-on experience with multi-screen navigation and local database integration in Android, AI was used to build foundational understanding of these systems. This included learning how screens communicate through a shared ViewModel, how navigation flows between them, and how user progress can be stored and retrieved using a local database. AI helped break down these concepts into practical, incremental implementation steps.
+
+AI also assisted with structuring narrative data so it could be directly imported and used by the game screen without unnecessary abstraction, as well as refining how that data connects to the ViewModel. This was useful for translating high-level ideas (e.g., “this should just be content, not a class”) into concrete Kotlin implementations.
+
+AI was most useful for accelerating debugging, clarifying unfamiliar Android-specific patterns (such as BuildConfig usage and permission flows), and reducing time spent on trial-and-error when integrating multiple systems. It was less useful for nuanced design decisions, where manual iteration and testing were required to achieve the intended behavior and user experience.
+
+
+
