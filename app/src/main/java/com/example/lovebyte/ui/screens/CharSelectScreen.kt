@@ -42,12 +42,12 @@ fun CharSelectScreen(
             languages.randomOrNull() ?: ProgrammingLanguage.NONE
         }
     }
-    val pagerState = androidx.compose.foundation.pager.rememberPagerState { languages.size }
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val pagerState = rememberPagerState { languages.size }
+    val scope = rememberCoroutineScope()
 
 
     // state for the info popup
-    var showInfoPopup by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var showInfoPopup by androidx.compose.runtime.remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -99,17 +99,17 @@ fun CharSelectScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Left Arrow
-            androidx.compose.material3.IconButton(
+            IconButton(
                 onClick = {
                     scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
                 },
                 enabled = pagerState.currentPage > 0
             ) {
-                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.ArrowBack, "Prev")
+                Icon(Icons.Default.ArrowBack, "Prev")
             }
 
             // The Swippable Sprite Area
-            androidx.compose.foundation.pager.HorizontalPager(
+            HorizontalPager(
                 // https://developer.android.com/develop/ui/compose/layouts/pager
                 state = pagerState,
                 modifier = Modifier.weight(1f)

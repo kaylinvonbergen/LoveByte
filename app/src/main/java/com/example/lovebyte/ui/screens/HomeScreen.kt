@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap.Companion.Round
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.lovebyte.ui.theme.LoveByteTheme
@@ -71,7 +73,7 @@ fun HomeScreen(
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primaryContainer
             ) {
-                androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                Box(contentAlignment = Alignment.Center) {
                     // show the first letter of the hero language (e.g., 'P' for Python)
                     // TODO: replace with sprite once we make them
                     Text(
@@ -107,7 +109,7 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                 shape = MaterialTheme.shapes.large
             ) {
-                androidx.compose.foundation.layout.Box(contentAlignment = Alignment.Center) {
+                Box(contentAlignment = Alignment.Center) {
                     Text(
                         text = "${state.currentLanguage.displayName} Sprite",
                         style = MaterialTheme.typography.headlineSmall,
@@ -132,7 +134,7 @@ fun HomeScreen(
                     LinearProgressIndicator(
                         progress = { state.progressFraction },
                         modifier = Modifier.fillMaxWidth().height(12.dp),
-                        strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
+                        strokeCap = Round
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(

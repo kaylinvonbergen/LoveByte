@@ -16,8 +16,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.unit.dp
 
 import com.example.lovebyte.data.model.LoveByteState
-import com.example.lovebyte.data.model.ProgrammingLanguage
-import com.example.lovebyte.data.model.Section
 import com.example.lovebyte.data.model.Chapter
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
