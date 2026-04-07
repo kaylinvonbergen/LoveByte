@@ -173,8 +173,14 @@ fun HomeScreen(
                         strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                     )
                     Spacer(Modifier.height(8.dp))
+                    val displayChapter = if (state.currentLanguage == ProgrammingLanguage.NONE) {
+                        1
+                    } else {
+                        state.currentChapter
+                    }
+
                     Text(
-                        text = "${heroLanguage.displayName}: Chapter ${state.progressMap[heroLanguage] ?: 1}",
+                        text = "${heroLanguage.displayName}: Chapter $displayChapter",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -191,9 +197,9 @@ fun HomeScreen(
             Button(
                 onClick = onContinueClicked,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                enabled = state.currentLanguage != ProgrammingLanguage.NONE
+                //enabled = state.currentLanguage != ProgrammingLanguage.NONE
             ) {
-                Text(if (state.currentLanguage != ProgrammingLanguage.NONE) "Continue" else "Choose a Route")
+                Text(if (state.currentLanguage != ProgrammingLanguage.NONE) "Continue" else "Start")
             }
 
             OutlinedButton(

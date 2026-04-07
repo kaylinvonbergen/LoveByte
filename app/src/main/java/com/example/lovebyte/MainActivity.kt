@@ -56,9 +56,16 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 state = state,
                                 onContinueClicked = {
-                                    if (state.currentLanguage != ProgrammingLanguage.NONE) {
+                                    if (state.currentLanguage == ProgrammingLanguage.NONE) {
+                                        // default start → Python Chapter 1
+                                        viewModel.onLanguageSelected(ProgrammingLanguage.PYTHON)
+                                        viewModel.loadChapter(ProgrammingLanguage.PYTHON, 1)
+
+                                        navController.navigate("chapter/PYTHON/1/false")
+                                    } else {
                                         val currentLang = state.currentLanguage.name
                                         val chapterId = state.currentChapter
+
                                         navController.navigate("chapter/$currentLang/$chapterId/true")
                                     }
                                 },
