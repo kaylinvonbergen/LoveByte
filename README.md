@@ -36,3 +36,5 @@ In terms of lifecycle management for sensors, Gemini assisted with implementing 
 Gemini generally assisted in finding the Material3/Android/Kotlin/Compose names for things already encountered in webdev, like a “carousel” for character selection (HorizontalPager). This was especially helpful, because it allowed for more rapid development rather than digging through documentation to find what elements are called in Android development. 
 
 Gemini was also used to develop placeholder content (info about characters/languages, basic stories, etc.) as good writing is not necessary to develop the functionality of the app. Also silly and honestly decent, these will be replaced down the line when an actual narrative is developed.
+
+AI was also used to quickly polish up and format areas of code that looked messy (due to weird spacing, for example) before committing.
