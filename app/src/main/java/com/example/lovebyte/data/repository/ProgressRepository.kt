@@ -12,6 +12,10 @@ class ProgressRepository(
         return userProgressDao.getProgressForLanguage(language)
     }
 
+    suspend fun getProgressForLanguageOnce(language: String): UserProgress? {
+        return userProgressDao.getProgressForLanguageOnce(language)
+    }
+
     suspend fun saveProgress(progress: UserProgress) {
         userProgressDao.saveProgress(progress)
     }

@@ -19,17 +19,25 @@ import com.example.lovebyte.data.repository.ProgressRepository
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
+
 class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
+
+
 
     private val _state = MutableStateFlow(
         LoveByteState(
-            isLoading = false
+            isLoading = true
         )
     )
+
     val state: StateFlow<LoveByteState> = _state.asStateFlow()
 
     private val database = DatabaseProvider.getDatabase(application)
     private val progressRepository = ProgressRepository(database.userProgressDao())
+
+    init {
+        loadAllSavedProgress()
+    }
 
     fun onLanguageSelected(language: ProgrammingLanguage) {
         _state.value = _state.value.copy(
@@ -125,6 +133,41 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                     dialogueIndex = currentState.dialogueIndex
                 )
             )
+        }
+    }
+
+    private fun loadAllSavedProgress() {
+        viewModelScope.launch {
+            try {
+                val pythonProgress = progressRepository.getProgressForLanguageOnce(
+                    ProgrammingLanguage.PYTHON.name
+                )
+
+                val kotlinProgress = progressRepository.getProgressForLanguageOnce(
+                    ProgrammingLanguage.KOTLIN.name
+                )
+
+                val updatedProgressMap = _state.value.progressMap.toMutableMap()
+
+                if (pythonProgress != null) {
+                    updatedProgressMap[ProgrammingLanguage.PYTHON] = pythonProgress.chapterId
+                }
+
+                if (kotlinProgress != null) {
+                    updatedProgressMap[ProgrammingLanguage.KOTLIN] = kotlinProgress.chapterId
+                }
+
+                _state.value = _state.value.copy(
+                    progressMap = updatedProgressMap,
+                    isLoading = false,
+                    errorMessage = null
+                )
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    errorMessage = "Failed to load saved progress."
+                )
+            }
         }
     }
 
