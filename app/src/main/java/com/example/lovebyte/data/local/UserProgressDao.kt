@@ -17,4 +17,5 @@ interface UserProgressDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveProgress(progress: UserProgress)
+
 }

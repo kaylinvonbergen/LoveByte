@@ -1,5 +1,5 @@
 package com.example.lovebyte
-
+//MainActivity.kt
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
                                     if (state.currentLanguage != ProgrammingLanguage.NONE) {
                                         val currentLang = state.currentLanguage.name
                                         val chapterId = state.currentChapter
-                                        navController.navigate("chapter/$currentLang/$chapterId")
+                                        navController.navigate("chapter/$currentLang/$chapterId/true")
                                     }
                                 },
                                 onSwapClicked = {
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                                 state = state.copy(currentLanguage = selectedLang),
                                 onChapterSelected = { chId ->
                                     viewModel.onChapterSelected(chId)
-                                    navController.navigate("chapter/${selectedLang.name}/$chId")
+                                    navController.navigate("chapter/${selectedLang.name}/$chId/false")
                                 },
                                 onBackPressed = {
                                     navController.popBackStack()
@@ -108,8 +108,9 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // 5. Chapter (The Game + Minigame)
-                        composable("chapter/{language}/{chapterId}") { backStackEntry ->
-
+                        composable("chapter/{language}/{chapterId}/{resume}") { backStackEntry ->
+                            val resume =
+                                backStackEntry.arguments?.getString("resume")?.toBooleanStrictOrNull() ?: false
                             val chapterId =
                                 backStackEntry.arguments?.getString("chapterId")?.toIntOrNull() ?: 1
                             val langName =
@@ -122,8 +123,12 @@ class MainActivity : ComponentActivity() {
                             }
 
                             // sync state when entering screen
-                            LaunchedEffect(chapterId, langName) {
-                                viewModel.loadChapter(selectedLang, chapterId)
+                            LaunchedEffect(chapterId, langName, resume) {
+                                if (resume) {
+                                    viewModel.resumeChapter(selectedLang, chapterId)
+                                } else {
+                                    viewModel.loadChapter(selectedLang, chapterId)
+                                }
                             }
 
                             // main game screen

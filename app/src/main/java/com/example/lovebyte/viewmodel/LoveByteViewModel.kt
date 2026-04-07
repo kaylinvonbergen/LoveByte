@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.example.lovebyte.data.model.DialogueNode
-import com.example.lovebyte.ui.screens.dummyNodes
+import com.example.lovebyte.data.content.narrativeNodes
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -142,7 +142,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 val pythonProgress = progressRepository.getProgressForLanguageOnce(
                     ProgrammingLanguage.PYTHON.name
                 )
-
                 val kotlinProgress = progressRepository.getProgressForLanguageOnce(
                     ProgrammingLanguage.KOTLIN.name
                 )
@@ -157,8 +156,18 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                     updatedProgressMap[ProgrammingLanguage.KOTLIN] = kotlinProgress.chapterId
                 }
 
+                val restoredLanguage = when {
+                    pythonProgress != null && kotlinProgress == null -> ProgrammingLanguage.PYTHON
+                    kotlinProgress != null && pythonProgress == null -> ProgrammingLanguage.KOTLIN
+                    (pythonProgress?.chapterId ?: 1) >= (kotlinProgress?.chapterId ?: 1) &&
+                            pythonProgress != null -> ProgrammingLanguage.PYTHON
+                    kotlinProgress != null -> ProgrammingLanguage.KOTLIN
+                    else -> ProgrammingLanguage.NONE
+                }
+
                 _state.value = _state.value.copy(
                     progressMap = updatedProgressMap,
+                    currentLanguage = restoredLanguage,
                     isLoading = false,
                     errorMessage = null
                 )
@@ -278,11 +287,11 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun getCurrentNode(): DialogueNode? {
-        return dummyNodes[_state.value.dialogueIndex]
+        return narrativeNodes[_state.value.dialogueIndex]
     }
 
     fun advanceToNode(nextId: Int) {
-        val nextNode = dummyNodes[nextId]
+        val nextNode = narrativeNodes[nextId]
 
         _state.value = _state.value.copy(
             dialogueIndex = nextId,
@@ -294,7 +303,7 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun handleChoiceSelected(choice: DialogueChoice) {
-        val nextNode = dummyNodes[choice.targetNodeId]
+        val nextNode = narrativeNodes[choice.targetNodeId]
 
         _state.value = _state.value.copy(
             dialogueIndex = choice.targetNodeId,
@@ -333,4 +342,30 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
         saveCurrentProgress()
     }
+
+    fun resumeChapter(language: ProgrammingLanguage, chapterId: Int) {
+        viewModelScope.launch {
+            val savedProgress = progressRepository.getProgressForLanguageOnce(language.name)
+            val updatedProgressMap = _state.value.progressMap.toMutableMap().apply {
+                put(language, chapterId)
+            }
+
+            val restoredNode = if (savedProgress != null && savedProgress.chapterId == chapterId) {
+                savedProgress.dialogueIndex
+            } else {
+                (chapterId * 100) + 1
+            }
+
+            _state.value = _state.value.copy(
+                currentLanguage = language,
+                progressMap = updatedProgressMap,
+                dialogueIndex = restoredNode,
+                isMiniGameActive = false,
+                isPaused = false,
+                isChapterComplete = false,
+                errorMessage = null
+            )
+        }
+    }
 }
+
