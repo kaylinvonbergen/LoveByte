@@ -136,13 +136,13 @@ fun CharSelectScreen(
             }
 
             // Right Arrow
-            androidx.compose.material3.IconButton(
+            IconButton(
                 onClick = {
                     scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                 },
                 enabled = pagerState.currentPage < languages.size - 1
             ) {
-                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.ArrowForward, "Next")
+                Icon(androidx.compose.material.icons.Icons.Default.ArrowForward, "Next")
             }
         }
 
@@ -170,12 +170,12 @@ fun CharSelectScreen(
     // 4. The Info Popup (AlertDialog)
     if (showInfoPopup) {
         val currentLang = languages[pagerState.currentPage]
-        androidx.compose.material3.AlertDialog(
+     AlertDialog(
             onDismissRequest = { showInfoPopup = false },
             title = { Text(currentLang.displayName) },
             text = { Text(currentLang.description) },
             confirmButton = {
-                androidx.compose.material3.TextButton(onClick = { showInfoPopup = false }) {
+                TextButton(onClick = { showInfoPopup = false }) {
                     Text("Got it")
                 }
             }
