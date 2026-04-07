@@ -17,6 +17,7 @@ import com.example.lovebyte.data.model.SliderBlock
 @Composable
 fun GameScreen(
     state: LoveByteState,
+    currentNode: DialogueNode?,
     onNodeAdvanced: (Int) -> Unit,
     onChoiceSelected: (DialogueChoice) -> Unit,
     onMinigameResult: (Boolean) -> Unit,
@@ -25,7 +26,6 @@ fun GameScreen(
 ) {
     // node initiation
     // TODO: make this not a dummy node soon
-    val currentNode = dummyNodes[state.dialogueIndex]
     var showChapterComplete by remember { mutableStateOf(false) }
 
     // if chapter completed, show a little pop-up that allows you to move to the next or back to chapter selection

@@ -1,6 +1,5 @@
 package com.example.lovebyte.viewmodel
 //Holds app state and exposes functions the UI can call, like onNextLineClicked().
-import androidx.lifecycle.ViewModel
 import com.example.lovebyte.data.model.DialogueChoice
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.repository.GameRepository
@@ -8,8 +7,19 @@ import com.example.lovebyte.data.model.ProgrammingLanguage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.example.lovebyte.data.model.DialogueNode
+import com.example.lovebyte.ui.screens.dummyNodes
 
-class LoveByteViewModel : ViewModel() {
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.lovebyte.data.local.DatabaseProvider
+import com.example.lovebyte.data.local.UserProgress
+import com.example.lovebyte.data.repository.ProgressRepository
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
+
+class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(
         LoveByteState(
@@ -17,6 +27,9 @@ class LoveByteViewModel : ViewModel() {
         )
     )
     val state: StateFlow<LoveByteState> = _state.asStateFlow()
+
+    private val database = DatabaseProvider.getDatabase(application)
+    private val progressRepository = ProgressRepository(database.userProgressDao())
 
     fun onLanguageSelected(language: ProgrammingLanguage) {
         _state.value = _state.value.copy(
@@ -26,21 +39,27 @@ class LoveByteViewModel : ViewModel() {
             isChapterComplete = false,
             errorMessage = null
         )
+
+        loadSavedProgressForLanguage(language)
     }
 
     fun loadChapter(language: ProgrammingLanguage, chapterId: Int) {
         val updatedProgressMap = _state.value.progressMap.toMutableMap()
         updatedProgressMap[language] = chapterId
 
+        val startNode = (chapterId * 100) + 1
+
         _state.value = _state.value.copy(
             currentLanguage = language,
             progressMap = updatedProgressMap,
-            dialogueIndex = 0,
+            dialogueIndex = startNode,
             isMiniGameActive = false,
             isPaused = false,
             isChapterComplete = false,
             errorMessage = null
         )
+
+        saveCurrentProgress()
     }
 
     fun onChapterSelected(chapterId: Int) {
@@ -92,6 +111,48 @@ class LoveByteViewModel : ViewModel() {
         )
     }
 
+    private fun saveCurrentProgress() {
+        val currentState = _state.value
+        val currentLanguage = currentState.currentLanguage
+
+        if (currentLanguage == ProgrammingLanguage.NONE) return
+
+        viewModelScope.launch {
+            progressRepository.saveProgress(
+                UserProgress(
+                    language = currentLanguage.name,
+                    chapterId = currentState.currentChapter,
+                    dialogueIndex = currentState.dialogueIndex
+                )
+            )
+        }
+    }
+
+    private fun loadSavedProgressForLanguage(language: ProgrammingLanguage) {
+        if (language == ProgrammingLanguage.NONE) return
+
+        viewModelScope.launch {
+            val savedProgress = progressRepository
+                .getProgressForLanguage(language.name)
+                .firstOrNull()
+
+            if (savedProgress != null) {
+                val updatedProgressMap = _state.value.progressMap.toMutableMap()
+                updatedProgressMap[language] = savedProgress.chapterId
+
+                _state.value = _state.value.copy(
+                    currentLanguage = language,
+                    progressMap = updatedProgressMap,
+                    dialogueIndex = savedProgress.dialogueIndex,
+                    isMiniGameActive = false,
+                    isPaused = false,
+                    isChapterComplete = false,
+                    errorMessage = null
+                )
+            }
+        }
+    }
+
     fun getCurrentDialogueLine(): String {
         val currentState = _state.value
 
@@ -118,6 +179,8 @@ class LoveByteViewModel : ViewModel() {
             isChapterComplete = false,
             errorMessage = null
         )
+
+        saveCurrentProgress()
     }
 
     private fun completeCurrentChapter() {
@@ -169,5 +232,62 @@ class LoveByteViewModel : ViewModel() {
         _state.value = _state.value.copy(
             errorMessage = null
         )
+    }
+
+    fun getCurrentNode(): DialogueNode? {
+        return dummyNodes[_state.value.dialogueIndex]
+    }
+
+    fun advanceToNode(nextId: Int) {
+        val nextNode = dummyNodes[nextId]
+
+        _state.value = _state.value.copy(
+            dialogueIndex = nextId,
+            isMiniGameActive = nextNode?.triggerEvent != null,
+            errorMessage = null
+        )
+
+        saveCurrentProgress()
+    }
+
+    fun handleChoiceSelected(choice: DialogueChoice) {
+        val nextNode = dummyNodes[choice.targetNodeId]
+
+        _state.value = _state.value.copy(
+            dialogueIndex = choice.targetNodeId,
+            isMiniGameActive = nextNode?.triggerEvent != null,
+            errorMessage = null
+        )
+
+        saveCurrentProgress()
+    }
+
+    fun handleMinigameResult(success: Boolean) {
+        _state.value = _state.value.copy(
+            isMiniGameActive = false,
+            dialogueIndex = if (success) 109 else 110
+        )
+
+        saveCurrentProgress()
+    }
+
+    fun goToNextChapter() {
+        val currentState = _state.value
+        val nextCh = currentState.currentChapter + 1
+        val startNode = (nextCh * 100) + 1
+
+        val updatedMap = currentState.progressMap.toMutableMap().apply {
+            put(currentState.currentLanguage, nextCh)
+        }
+
+        _state.value = currentState.copy(
+            progressMap = updatedMap,
+            dialogueIndex = startNode,
+            isMiniGameActive = false,
+            isChapterComplete = false,
+            errorMessage = null
+        )
+
+        saveCurrentProgress()
     }
 }
