@@ -25,44 +25,15 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 
 import com.example.lovebyte.data.repository.WeatherRepository
-import com.example.lovebyte.data.network.RetrofitProvider
 import com.example.lovebyte.data.location.LocationHelper
+
+import android.util.Log
 
 import android.content.Context
 class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
 
     private val weatherRepository = WeatherRepository(RetrofitProvider.weatherApi)
     private val locationHelper = LocationHelper(application)
-
-    fun updateWeatherForCurrentLocation(apiKey: String) {
-        viewModelScope.launch {
-            try {
-                val locationResult = locationHelper.getCurrentLocationResult()
-                if (locationResult == null) {
-                    _state.value = _state.value.copy(
-                        weatherDescription = "Clear",
-                        cityName = "your area"
-                    )
-                    return@launch
-                }
-
-                val weather = weatherRepository.getWeather(
-                    lat = locationResult.latitude,
-                    lon = locationResult.longitude,
-                    apiKey = apiKey
-                )
-
-                _state.value = _state.value.copy(
-                    weatherDescription = weather.weather.firstOrNull()?.main ?: "Clear",
-                    cityName = locationResult.cityName ?: weather.name
-                )
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    errorMessage = "Could not update weather."
-                )
-            }
-        }
-    }
 
 
     private val _state = MutableStateFlow(
@@ -429,14 +400,27 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     }
     fun updateWeatherFromLocation(context: android.content.Context) {
         viewModelScope.launch {
+            Log.d("WEATHER_DEBUG", "updateWeatherFromLocation called")
+
             try {
                 val locationHelper = LocationHelper(context)
                 val locationResult = locationHelper.getCurrentLocationResult()
 
+
+
                 if (locationResult == null) {
+                    Log.d("WEATHER_DEBUG", "Location was null")
                     setLocationDenied()
                     return@launch
                 }
+
+                Log.d(
+                    "WEATHER_DEBUG",
+                    "Requesting weather for lat=${locationResult.latitude}, lon=${locationResult.longitude}"
+                )
+                Log.d("WEATHER_DEBUG", "locationResult = $locationResult")
+                Log.d("WEATHER_DEBUG", "API key = '${BuildConfig.WEATHER_API_KEY}'")
+
 
                 val weather = weatherRepository.getWeather(
                     lat = locationResult.latitude,
@@ -444,20 +428,65 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                     apiKey = BuildConfig.WEATHER_API_KEY
                 )
 
+                Log.d("WEATHER_DEBUG", "Weather API success: $weather")
+
+
+                val weatherInfo = weather.weather.firstOrNull()
+
+                val adjective = if (weatherInfo != null) {
+                    mapWeatherToAdjective(weatherInfo.main, weatherInfo.description)
+                } else {
+                    ""
+                }
+
                 _state.value = _state.value.copy(
                     cityName = locationResult.cityName ?: weather.name,
-                    weatherDescription = weather.weather.firstOrNull()?.main ?: "",
+                    weatherDescription = adjective,
                     temperature = weather.main.temp,
                     errorMessage = null
                 )
+
+                Log.d("WEATHER_DEBUG", "State updated with weather")
             } catch (e: Exception) {
+                Log.e("WEATHER_DEBUG", "Weather fetch failed", e)
+
+
                 _state.value = _state.value.copy(
                     weatherDescription = "",
                     cityName = "",
                     temperature = 0.0,
-                    errorMessage = "Failed to fetch weather."
+                    errorMessage = "Failed to fetch weather: ${e.message}"
                 )
             }
+        }
+    }
+
+    fun mapWeatherToAdjective(main: String, description: String): String {
+        val desc = description.lowercase()
+        val mainLower = main.lowercase()
+
+        return when {
+            "clear" in mainLower -> "sunny"
+
+            "cloud" in mainLower -> "cloudy"
+
+            "rain" in mainLower -> when {
+                "light" in desc -> "lightly rainy"
+                "heavy" in desc -> "heavily rainy"
+                else -> "rainy"
+            }
+
+            "drizzle" in mainLower -> "drizzling"
+
+            "thunderstorm" in mainLower -> "stormy"
+
+            "snow" in mainLower -> "snowy"
+
+            "mist" in mainLower ||
+                    "fog" in mainLower ||
+                    "haze" in mainLower -> "foggy"
+
+            else -> description.lowercase() // fallback
         }
     }
 }

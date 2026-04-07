@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.location.Geocoder
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.Locale
 import kotlin.coroutines.resume
@@ -20,8 +21,14 @@ class LocationHelper(private val context: Context) {
     suspend fun getCurrentLocationResult(): LocationResult? {
         val fusedClient = LocationServices.getFusedLocationProviderClient(context)
 
-        val location = suspendCancellableCoroutine<android.location.Location?> { cont ->
+        val lastKnown = suspendCancellableCoroutine<android.location.Location?> { cont ->
             fusedClient.lastLocation
+                .addOnSuccessListener { cont.resume(it) }
+                .addOnFailureListener { cont.resume(null) }
+        }
+
+        val location = lastKnown ?: suspendCancellableCoroutine<android.location.Location?> { cont ->
+            fusedClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener { cont.resume(it) }
                 .addOnFailureListener { cont.resume(null) }
         } ?: return null
