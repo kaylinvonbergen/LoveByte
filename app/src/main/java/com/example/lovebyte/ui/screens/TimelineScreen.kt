@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.Chapter
+import com.example.lovebyte.data.model.ProgrammingLanguage
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
