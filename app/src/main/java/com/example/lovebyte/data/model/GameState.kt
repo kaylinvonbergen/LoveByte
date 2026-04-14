@@ -89,8 +89,8 @@ data class LoveByteState(
     val isPaused: Boolean = false,
 
     // External Data
-    val weatherDescription: String = "Clear",
-    val cityName: String = "Boston",
+    val weatherDescription: String = "",
+    val cityName: String = "",
     val temperature: Double = 0.0,
 
     // Game Persistence
@@ -102,13 +102,17 @@ data class LoveByteState(
         get() = progressMap[currentLanguage] ?: 1
 
     // progress fraction for LinearProgressIndicator
+    val completedChapters: Int
+        get() = (currentChapter - 1).coerceAtLeast(0)
+
+    // progress fraction for LinearProgressIndicator
     val progressFraction: Float
         get() {
             val total = currentLanguage.totalChapters
-            return if (total > 0) currentChapter.toFloat() / total.toFloat() else 0f
+            return if (total > 0) completedChapters.toFloat() / total.toFloat() else 0f
         }
 
-    // 3. string for the UI text
+    // string for the UI text
     val progressPercentage: Int
         get() = (progressFraction * 100).toInt()
 }

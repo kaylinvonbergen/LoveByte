@@ -1,5 +1,7 @@
 # LoveByte Checkpoint 4/7/26
 
+## IMPORTANT NOTE: the most updated work is in dev/kaylin branch
+
 ## WHAT WE CAN SHOW OFF
 - Home Screen
 - Character Selection Screen
