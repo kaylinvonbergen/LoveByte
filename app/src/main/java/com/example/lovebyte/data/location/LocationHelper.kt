@@ -14,7 +14,8 @@ data class LocationResult(
     val longitude: Double,
     val cityName: String?
 )
-
+// fetches the user's current location
+// Uses Google's FusedLocationProvider + reverse geocoding for city name
 class LocationHelper(private val context: Context) {
 
     @SuppressLint("MissingPermission")
