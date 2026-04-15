@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.data.model.*
 import com.example.lovebyte.ui.components.minigames.SyntaxSliderMinigame
-import com.example.lovebyte.data.content.pythonChapter1Blocks
+import com.example.lovebyte.data.content.*
 
 // game screen composable
 @Composable
@@ -27,12 +27,19 @@ fun GameScreen(
     // TODO: make this not a dummy node soon
     var showChapterComplete by remember { mutableStateOf(false) }
 
+    // dynamically select blocks based on the current character/language
+    val activeBlocks = when (state.currentLanguage.name.uppercase()) {
+        "PYTHON" -> pythonChapter1Blocks
+        // "KOTLIN" -> kotlinChapter1Blocks // TODO: add this when we create Kotlin's minigame
+        else -> emptyList()
+    }
+
     // if chapter completed, show a little pop-up that allows you to move to the next or back to chapter selection
     if (showChapterComplete) {
         AlertDialog(
             onDismissRequest = { },
             title = { Text("Chapter Complete!") },
-            text = { Text("You've successfully mastered the basics of Python's syntax. Ready for the next challenge?") },
+            text = { Text("You've successfully mastered the basics of ${state.currentLanguage.name}'s syntax. Ready for the next challenge?") },
             confirmButton = {
                 // next chapter
                 Button(onClick = {
@@ -54,7 +61,7 @@ fun GameScreen(
     // check for if a minigame is active, check for the minigame
     if (state.isMiniGameActive && currentNode?.triggerEvent == "SYNTAX_DASH") {
         SyntaxSliderMinigame(
-            blocks = pythonChapter1Blocks,
+            blocks = activeBlocks,
             onFinished = { success ->
                 // close the game state
                 onMinigameResult(success)
@@ -62,15 +69,16 @@ fun GameScreen(
                 // logic-based branching
                 // explicitly route to prevent the engine from guessing the next ID
                 if (success) {
-                    onNodeAdvanced(109) // success node
+                    onNodeAdvanced(109) // success node (Blushing)
                 } else {
-                    onNodeAdvanced(110) // failure node
+                    onNodeAdvanced(110) // failure/retry node (Pensive)
                 }
             },
             onContinueAnyway = {
                 // user failed but clicked "Continue Anyway"
-                // tell the engine where to go BEFORE closing the overlay (haha oops)
+                // tell the engine where to go BEFORE closing the overlay
                 onNodeAdvanced(110)
+                // pass false so the ViewModel knows it wasn't a perfect run
                 onMinigameResult(false)
             }
         )
@@ -126,6 +134,7 @@ fun GameScreen(
                         }
                     }
                 ) {
+                    // physics engine notes: the card handles the main dialogue flow
                     Column(Modifier.padding(24.dp)) {
                         Text(
                             text = currentNode.speaker,

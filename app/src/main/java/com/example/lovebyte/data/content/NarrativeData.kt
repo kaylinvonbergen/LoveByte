@@ -11,7 +11,11 @@ val pythonChapter1Blocks = listOf(
     SliderBlock(id = 4, code = "    return \"Done!\"", targetLevel = 1)
 )
 
-val narrativeNodes = mapOf(
+
+// we define separate maps for each character/language
+
+//Python dialogue
+private val pythonNodes = mapOf(
     101 to DialogueNode(
         id = 101,
         speaker = "Python",
@@ -79,7 +83,6 @@ val narrativeNodes = mapOf(
         emotion = "Blushing",
         nextNodeId = null
     ),
-    // failure dialogue
     110 to DialogueNode(
         id = 110,
         speaker = "Python",
@@ -90,7 +93,6 @@ val narrativeNodes = mapOf(
             DialogueChoice("I'm more of a 'chaotic' coder.", 111)
         )
     ),
-    // failure ending
     111 to DialogueNode(
         id = 111,
         speaker = "Python",
@@ -112,4 +114,21 @@ val narrativeNodes = mapOf(
         emotion = "Thinking",
         nextNodeId = null
     )
+)
+
+// Kotlin dialogue nodes
+private val kotlinNodes = mapOf(
+    101 to DialogueNode(
+        id = 101,
+        speaker = "Kotlin",
+        text = "Oh, hi! I was just organizing some lambdas. I'm Kotlin! You're the one looking for the 'modern' experience, right?",
+        emotion = "Happy",
+        nextNodeId = null // TODO: Add Chapter 1 logic
+    )
+)
+
+// the master registry that the LoveByteViewModel queries
+val allNarrativeContent = mapOf(
+    "PYTHON" to pythonNodes,
+    "KOTLIN" to kotlinNodes
 )
