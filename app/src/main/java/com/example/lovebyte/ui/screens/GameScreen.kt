@@ -7,12 +7,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lovebyte.data.model.LoveByteState
-import com.example.lovebyte.data.model.DialogueNode
-import com.example.lovebyte.data.model.DialogueChoice
+import com.example.lovebyte.data.model.*
 import com.example.lovebyte.ui.components.minigames.SyntaxSliderMinigame
 import com.example.lovebyte.data.content.pythonChapter1Blocks
-import com.example.lovebyte.data.content.narrativeNodes
 
 // game screen composable
 @Composable
@@ -58,7 +55,24 @@ fun GameScreen(
     if (state.isMiniGameActive && currentNode?.triggerEvent == "SYNTAX_DASH") {
         SyntaxSliderMinigame(
             blocks = pythonChapter1Blocks,
-            onFinished = onMinigameResult
+            onFinished = { success ->
+                // close the game state
+                onMinigameResult(success)
+
+                // logic-based branching
+                // explicitly route to prevent the engine from guessing the next ID
+                if (success) {
+                    onNodeAdvanced(109) // success node
+                } else {
+                    onNodeAdvanced(110) // failure node
+                }
+            },
+            onContinueAnyway = {
+                // user failed but clicked "Continue Anyway"
+                // tell the engine where to go BEFORE closing the overlay (haha oops)
+                onNodeAdvanced(110)
+                onMinigameResult(false)
+            }
         )
         // if there's a current node, display the associated text and sprite
         // means no minigame is active
@@ -101,6 +115,7 @@ fun GameScreen(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp),
                     shape = MaterialTheme.shapes.extraLarge,
                     onClick = {
+                        // safety check: don't advance if there are active choices to click
                         if (currentNode.choices.isNullOrEmpty()) {
                             if (currentNode.nextNodeId != null) {
                                 onNodeAdvanced(currentNode.nextNodeId)

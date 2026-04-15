@@ -79,6 +79,7 @@ val narrativeNodes = mapOf(
         emotion = "Blushing",
         nextNodeId = null
     ),
+    // failure dialogue
     110 to DialogueNode(
         id = 110,
         speaker = "Python",
@@ -86,8 +87,16 @@ val narrativeNodes = mapOf(
         emotion = "Pensive",
         choices = listOf(
             DialogueChoice("Let me try again!", 107),
-            DialogueChoice("I'm more of a 'chaotic' coder.", 109)
+            DialogueChoice("I'm more of a 'chaotic' coder.", 111)
         )
+    ),
+    // failure ending
+    111 to DialogueNode(
+        id = 111,
+        speaker = "Python",
+        text = "Oh—haha, okay! A little... 'creative' chaos keeps the sensors on their toes, I suppose? I can already hear the pumps acting a bit erratic, and the jasmine might end up a tad soggy, but... we'll call it a successful experiment for now. Chapter 1: Complete!",
+        emotion = "Thinking",
+        nextNodeId = null
     ),
     201 to DialogueNode(
         id = 201,
