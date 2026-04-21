@@ -16,6 +16,7 @@ val pythonChapter1Blocks = listOf(
 
 //Python dialogue
 private val pythonNodes = mapOf(
+    // --- CHAPTER 1 ---
     101 to DialogueNode(
         id = 101,
         speaker = "Python",
@@ -100,6 +101,8 @@ private val pythonNodes = mapOf(
         emotion = "Thinking",
         nextNodeId = null
     ),
+
+    // --- CHAPTER 2 ---
     201 to DialogueNode(
         id = 201,
         speaker = "Python",
@@ -113,6 +116,72 @@ private val pythonNodes = mapOf(
         text = "Try creating a variable for our jasmine tea temperature. Use: 'temp = 180'",
         emotion = "Thinking",
         nextNodeId = null
+    ),
+
+    // --- CHAPTER 3: ENVIRONMENTAL SECRETS ---
+    301 to DialogueNode(
+        id = 301,
+        speaker = "Python",
+        text = "You're getting comfortable with the syntax. But now we need to talk about the 'invisible' parts of a project. The stuff that keeps the garden running but shouldn't be touched by the public.",
+        emotion = "Serious",
+        nextNodeId = 302
+    ),
+    302 to DialogueNode(
+        id = 302,
+        speaker = "System",
+        text = "He points to a line of code in the holographic display: 'API_KEY = \"sk-123456789\"'. It’s glowing a dangerous, bright red.",
+        choices = listOf(
+            DialogueChoice("Wait, isn't that a security risk?", 303),
+            DialogueChoice("Is that how you connect to the sensors?", 304)
+        )
+    ),
+    303 to DialogueNode(
+        id = 303,
+        speaker = "Python",
+        text = "A massive one. Real code isn't meant to live in the shadows—logic should be transparent. But sensitive data? API keys, database passwords? Those must be hidden in places non-devs can't even see.",
+        emotion = "Encouraging",
+        nextNodeId = 305
+    ),
+    304 to DialogueNode(
+        id = 304,
+        speaker = "Python",
+        text = "It is, but it's dangerous. Hard-coding a key like that is like leaving your house key in the lock. We NEVER put sensitive keys out in the public where any user—or bot—can scrape them.",
+        emotion = "Thinking",
+        nextNodeId = 305
+    ),
+    305 to DialogueNode(
+        id = 305,
+        speaker = "Python",
+        text = "We use environment variables. They sit outside the script, in the OS layer. If we don't 'darken' the environment now, that key will leak into the logs. Cover the sensor—now!",
+        emotion = "Excited",
+        triggerEvent = "LIGHT_SENSITIVE_SECRET"
+    ),
+    // Success Node
+    306 to DialogueNode(
+        id = 306,
+        speaker = "Python",
+        text = "Perfectly masked. Now, instead of a raw key, the code just sees a reference. It's clean, it's secure, and it stays between us and the server. Chapter 3: Complete!",
+        emotion = "Blushing",
+        nextNodeId = null
+    ),
+    // Failure / Retry Node
+    307 to DialogueNode(
+        id = 307,
+        speaker = "Python",
+        text = "The light hit it! That key is compromised now. In the real world, we'd have to revoke that credential immediately. What's the plan for the next attempt?",
+        emotion = "Pensive",
+        choices = listOf(
+            DialogueChoice("Let's try the shadow move again.", 305),
+            DialogueChoice("I'll just use a .env file next time.", 308)
+        )
+    ),
+    // Technical Knowledge Reward (Bypasses Minigame)
+    308 to DialogueNode(
+        id = 308,
+        speaker = "Python",
+        text = "Exactly. A .env file keeps the sensitive stuff out of version control and safely in the local environment. You've clearly got the right security mindset—let's move on. Chapter 3: Complete!",
+        emotion = "Happy",
+        nextNodeId = null // Marks chapter as finished
     )
 )
 

@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.data.model.*
-import com.example.lovebyte.ui.components.minigames.SyntaxSliderMinigame
+import com.example.lovebyte.ui.components.minigames.*
 import com.example.lovebyte.data.content.*
 
 // game screen composable
@@ -59,31 +59,49 @@ fun GameScreen(
     }
 
     // check for if a minigame is active, check for the minigame
-    if (state.isMiniGameActive && currentNode?.triggerEvent == "SYNTAX_DASH") {
-        SyntaxSliderMinigame(
-            blocks = activeBlocks,
-            onFinished = { success ->
-                // close the game state
-                onMinigameResult(success)
+    if (state.isMiniGameActive && currentNode?.triggerEvent != null) {
+        when (currentNode.triggerEvent) {
+            "SYNTAX_DASH" -> {
+                SyntaxSliderMinigame(
+                    blocks = activeBlocks,
+                    onFinished = { success ->
+                        // Route FIRST, then close the minigame overlay
+                        if (success) onNodeAdvanced(109) else onNodeAdvanced(110)
+                        onMinigameResult(success)
+                    },
+                    // move this around, pass result to ViewModel first so it doesn't recompose incorrectly
+                    onContinueAnyway = {
+                        // pass false so the ViewModel knows it wasn't a perfect run
+                        onMinigameResult(false)
 
-                // logic-based branching
-                // explicitly route to prevent the engine from guessing the next ID
-                if (success) {
-                    onNodeAdvanced(109) // success node (Blushing)
-                } else {
-                    onNodeAdvanced(110) // failure/retry node (Pensive)
-                }
-            },
-            onContinueAnyway = {
-                // user failed but clicked "Continue Anyway"
-                // tell the engine where to go BEFORE closing the overlay
-                onNodeAdvanced(110)
-                // pass false so the ViewModel knows it wasn't a perfect run
-                onMinigameResult(false)
+                        // user failed but clicked "Continue Anyway"
+                        // tell the engine where to go BEFORE closing the overlay
+                        onNodeAdvanced(110)
+
+                    }
+                )
             }
-        )
-        // if there's a current node, display the associated text and sprite
-        // means no minigame is active
+            "LIGHT_SENSITIVE_SECRET" -> {
+                LightSensorMinigame(
+                    onFinished = { success ->
+                        onMinigameResult(success)
+
+                        // route to Chapter 3 nodes specifically
+                        if (success) onNodeAdvanced(306) else onNodeAdvanced(307)
+
+                    },
+                    onContinueAnyway = {
+                        onMinigameResult(false)
+
+                        // user pushed through without the sensor move
+                        onNodeAdvanced(307)
+
+                    }
+                )
+            }
+        }
+    // if there's a current node, display the associated text and sprite
+    // means no minigame is active
     } else if (currentNode != null) {
         Box(modifier = Modifier.fillMaxSize()) {
             Surface(
