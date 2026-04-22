@@ -1,5 +1,6 @@
 package com.example.lovebyte.data.model
 
+
 enum class ProgrammingLanguage(
     val displayName: String,
     val totalChapters: Int,

@@ -17,6 +17,13 @@ import com.example.lovebyte.ui.screens.*
 import com.example.lovebyte.ui.theme.LoveByteTheme
 import com.example.lovebyte.viewmodel.LoveByteViewModel
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,6 +37,33 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val viewModel: LoveByteViewModel = viewModel()
                 val state = viewModel.state.collectAsState().value
+
+                val activity = this
+
+                var hasActivityRecognitionPermission by remember {
+                    mutableStateOf(
+                        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+                                ContextCompat.checkSelfPermission(
+                                    activity,
+                                    Manifest.permission.ACTIVITY_RECOGNITION
+                                ) == PackageManager.PERMISSION_GRANTED
+                    )
+                }
+
+                val activityRecognitionLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.RequestPermission()
+                ) { isGranted ->
+                    hasActivityRecognitionPermission = isGranted
+                }
+
+                LaunchedEffect(Unit) {
+                    if (
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                        !hasActivityRecognitionPermission
+                    ) {
+                        activityRecognitionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+                    }
+                }
 
                 // wrap everything in a Scaffold so we can potentially add a TopBar or BottomBar later
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -170,7 +204,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onChapterCompleted = {
                                     viewModel.markCurrentChapterComplete()
-                                }
+                                },
                             )
                         }
 
