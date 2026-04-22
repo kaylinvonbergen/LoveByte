@@ -18,11 +18,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.data.model.EfficiencyLoopChallenge
+import kotlinx.coroutines.delay
 
 @Composable
 fun EfficiencyStepper(
     challenge: EfficiencyLoopChallenge,
-    onFinished: (Boolean) -> Unit
+    timeLimitSeconds: Int = 30,
+    onFinished: (Boolean) -> Unit,
+    onContinueAnyway: () -> Unit
 ) {
     val context = LocalContext.current
     val sensorManager = remember {
@@ -47,8 +50,59 @@ fun EfficiencyStepper(
     var sliderPosition by remember { mutableFloatStateOf(0f) }
     var passLocked by remember { mutableStateOf(false) }
 
-    DisposableEffect(isPublicMode) {
-        if (isPublicMode) {
+    // timer state
+    var timeLeft by remember { mutableIntStateOf(timeLimitSeconds) }
+    var isGameOver by remember { mutableStateOf(false) }
+
+    // countdown timer logic
+    LaunchedEffect(timeLeft, isGameOver, challenge.id) {
+        if (timeLeft > 0 && !isGameOver) {
+            delay(1000L)
+            timeLeft -= 1
+        } else if (timeLeft == 0) {
+            isGameOver = true
+        }
+    }
+
+    // failure dialog
+    if (isGameOver) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Out of Time") },
+            text = {
+                Text(
+                    "You ran out of time before reaching the correct loop count. Retry the challenge or continue anyway?"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        timeLeft = timeLimitSeconds
+                        isGameOver = false
+                        baselineStepCount = null
+                        stepsTaken = 0
+                        passesCompleted = 0
+                        sliderPosition = 0f
+                        passLocked = false
+                    }
+                ) {
+                    Text("Retry")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        onContinueAnyway()
+                    }
+                ) {
+                    Text("Continue Anyway")
+                }
+            }
+        )
+    }
+
+    DisposableEffect(isPublicMode, isGameOver) {
+        if (isPublicMode || isGameOver) {
             onDispose { }
         } else {
             val listener = object : SensorEventListener {
@@ -128,16 +182,43 @@ fun EfficiencyStepper(
                 Switch(
                     checked = isPublicMode,
                     onCheckedChange = {
-                        isPublicMode = it
-                        baselineStepCount = null
-                        stepsTaken = 0
-                        passesCompleted = 0
-                        sliderPosition = 0f
-                        passLocked = false
+                        if (!isGameOver) {
+                            isPublicMode = it
+                            baselineStepCount = null
+                            stepsTaken = 0
+                            passesCompleted = 0
+                            sliderPosition = 0f
+                            passLocked = false
+                        }
+                    }
+                )
+            }
+
+            Column(horizontalAlignment = Alignment.End) {
+                Text("Time Left", style = MaterialTheme.typography.labelSmall)
+                Text(
+                    text = "${timeLeft}s",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = if (timeLeft < 10) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.primary
                     }
                 )
             }
         }
+
+        LinearProgressIndicator(
+            progress = { timeLeft.toFloat() / timeLimitSeconds.toFloat() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            color = if (timeLeft < 10) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.primary
+            }
+        )
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -182,8 +263,9 @@ fun EfficiencyStepper(
                 currentCount = passesCompleted,
                 targetCount = challenge.correctSteps,
                 sliderPosition = sliderPosition,
+                enabled = !isGameOver,
                 onSliderPositionChange = { newValue ->
-                    if (!passLocked) {
+                    if (!passLocked && !isGameOver) {
                         sliderPosition = newValue
 
                         if (newValue >= 0.98f) {
@@ -193,7 +275,7 @@ fun EfficiencyStepper(
                     }
                 },
                 onSliderReleased = {
-                    if (passLocked || sliderPosition < 0.98f) {
+                    if (!isGameOver && (passLocked || sliderPosition < 0.98f)) {
                         sliderPosition = 0f
                         passLocked = false
                     }
@@ -266,7 +348,10 @@ fun EfficiencyStepper(
                     passesCompleted = 0
                     sliderPosition = 0f
                     passLocked = false
+                    timeLeft = timeLimitSeconds
+                    isGameOver = false
                 },
+                enabled = !isGameOver,
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Reset")
@@ -274,7 +359,7 @@ fun EfficiencyStepper(
 
             Button(
                 onClick = { onFinished(isCorrect) },
-                enabled = isCorrect && (isPublicMode || sensorAvailable),
+                enabled = isCorrect && !isGameOver && (isPublicMode || sensorAvailable),
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Submit")
@@ -288,6 +373,7 @@ private fun PublicModePassSlider(
     currentCount: Int,
     targetCount: Int,
     sliderPosition: Float,
+    enabled: Boolean,
     onSliderPositionChange: (Float) -> Unit,
     onSliderReleased: () -> Unit
 ) {
@@ -336,6 +422,7 @@ private fun PublicModePassSlider(
                 onValueChange = onSliderPositionChange,
                 valueRange = 0f..1f,
                 onValueChangeFinished = onSliderReleased,
+                enabled = enabled,
                 modifier = Modifier.fillMaxWidth()
             )
         }

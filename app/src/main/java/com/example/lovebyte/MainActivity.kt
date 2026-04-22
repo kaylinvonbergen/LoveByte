@@ -111,6 +111,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onLocationPermissionDenied = {
                                     viewModel.setLocationDenied()
+                                },
+                                onOnboardingNext = {
+                                    viewModel.nextOnboardingStep()
+                                },
+                                onOnboardingFinish = {
+                                    viewModel.finishOnboarding()
                                 }
                             )
                         }

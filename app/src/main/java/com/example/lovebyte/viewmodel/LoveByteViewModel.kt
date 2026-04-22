@@ -24,13 +24,14 @@ import kotlinx.coroutines.launch
 import com.example.lovebyte.data.repository.WeatherRepository
 import com.example.lovebyte.data.location.LocationHelper
 
+
 import android.util.Log
 
 class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
 
     private val weatherRepository = WeatherRepository(RetrofitProvider.weatherApi)
     private val locationHelper = LocationHelper(application)
-
+    private val prefs = application.getSharedPreferences("lovebyte_prefs", Application.MODE_PRIVATE)
 
     private val _state = MutableStateFlow(
         LoveByteState(
@@ -45,6 +46,42 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
     init {
         loadAllSavedProgress()
+        checkOnboardingStatus()
+    }
+
+    private fun checkOnboardingStatus() {
+        val hasSeenOnboarding = prefs.getBoolean("has_seen_onboarding", false)
+
+        if (!hasSeenOnboarding) {
+            _state.value = _state.value.copy(
+                shouldShowOnboarding = true,
+                onboardingStep = 1
+            )
+        }
+    }
+
+    fun nextOnboardingStep() {
+        val currentStep = _state.value.onboardingStep
+
+        _state.value = _state.value.copy(
+            onboardingStep = currentStep + 1
+        )
+    }
+
+    fun finishOnboarding() {
+        prefs.edit().putBoolean("has_seen_onboarding", true).apply()
+
+        _state.value = _state.value.copy(
+            shouldShowOnboarding = false,
+            onboardingStep = 0
+        )
+    }
+
+    fun reopenOnboarding() {
+        _state.value = _state.value.copy(
+            shouldShowOnboarding = true,
+            onboardingStep = 1
+        )
     }
 
     // Updates state when the user picks a language and loads any saved progress for it.
@@ -232,8 +269,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-
-
     // Returns the current dialogue node based on the saved dialogue index AND language.
     fun getCurrentNode(): DialogueNode? {
         val currentLangName = _state.value.currentLanguage.name.uppercase()
@@ -329,8 +364,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 val locationHelper = LocationHelper(context)
                 val locationResult = locationHelper.getCurrentLocationResult()
 
-
-
                 if (locationResult == null) {
                     Log.d("WEATHER_DEBUG", "Location was null")
                     setLocationDenied()
@@ -344,7 +377,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 Log.d("WEATHER_DEBUG", "locationResult = $locationResult")
                 Log.d("WEATHER_DEBUG", "API key = '${BuildConfig.WEATHER_API_KEY}'")
 
-
                 val weather = weatherRepository.getWeather(
                     lat = locationResult.latitude,
                     lon = locationResult.longitude,
@@ -352,7 +384,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 )
 
                 Log.d("WEATHER_DEBUG", "Weather API success: $weather")
-
 
                 val weatherInfo = weather.weather.firstOrNull()
 
@@ -373,7 +404,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
             } catch (e: Exception) {
                 Log.e("WEATHER_DEBUG", "Weather fetch failed", e)
 
-
                 _state.value = _state.value.copy(
                     weatherDescription = "",
                     cityName = "",
@@ -391,26 +421,19 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
         return when {
             "clear" in mainLower -> "sunny"
-
             "cloud" in mainLower -> "cloudy"
-
             "rain" in mainLower -> when {
                 "light" in desc -> "lightly rainy"
                 "heavy" in desc -> "heavily rainy"
                 else -> "rainy"
             }
-
             "drizzle" in mainLower -> "drizzling"
-
             "thunderstorm" in mainLower -> "stormy"
-
             "snow" in mainLower -> "snowy"
-
             "mist" in mainLower ||
                     "fog" in mainLower ||
                     "haze" in mainLower -> "foggy"
-
-            else -> description.lowercase() // fallback
+            else -> description.lowercase()
         }
     }
 }

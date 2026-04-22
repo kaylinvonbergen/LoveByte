@@ -16,12 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +53,8 @@ fun HomeScreen(
     onSwapClicked: () -> Unit,
     onLocationPermissionGranted: (android.content.Context) -> Unit,
     onLocationPermissionDenied: () -> Unit,
+    onOnboardingNext: () -> Unit,
+    onOnboardingFinish: () -> Unit,
 ) {
     // Identify the "onLocationPermissionGranted: () -> Unit,hero" for the header (most recent or random)
     val heroLanguage = if (state.currentLanguage != ProgrammingLanguage.NONE) {
@@ -87,13 +89,47 @@ fun HomeScreen(
         }
     }
 
+    if (state.shouldShowOnboarding && state.onboardingStep == 1) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Welcome to LoveByte!") },
+            text = {
+                Text(
+                    "LoveByte is an interactive way to learn the basics of certain programming languages by interacting with them and playing mini games. By talking to the languages, you’ll learn their syntax and maybe even get to know them!"
+                )
+            },
+            confirmButton = {
+                Button(onClick = onOnboardingNext) {
+                    Text("Next")
+                }
+            }
+        )
+    }
+
+    if (state.shouldShowOnboarding && state.onboardingStep == 2) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Mini-Game Sensors") },
+            text = {
+                Text(
+                    "For the mini-games, you’ll be using the built-in sensors on your device. This may include tilting your phone, walking around a little, or covering your camera. If at any point you wish not to use your sensors, switch to “Private Mode,” and an alternate form of the game will be shown."
+                )
+            },
+            confirmButton = {
+                Button(onClick = onOnboardingFinish) {
+                    Text("Okay")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
 
-    ) {
+        ) {
         // 1. Header Section (Profile photo + Dynamic Greeting from weather)
         Row(
             modifier = Modifier.fillMaxWidth(),
