@@ -11,7 +11,6 @@ import com.example.lovebyte.data.model.*
 import com.example.lovebyte.ui.components.minigames.*
 import com.example.lovebyte.data.content.*
 
-// game screen composable
 @Composable
 fun GameScreen(
     state: LoveByteState,
@@ -23,33 +22,32 @@ fun GameScreen(
     onNextChapter: () -> Unit,
     onChapterCompleted: () -> Unit
 ) {
-    // node initiation
-    // TODO: make this not a dummy node soon
     var showChapterComplete by remember { mutableStateOf(false) }
 
-    // dynamically select blocks based on the current character/language
     val activeBlocks = when (state.currentLanguage.name.uppercase()) {
         "PYTHON" -> pythonChapter1Blocks
-        // "KOTLIN" -> kotlinChapter1Blocks // TODO: add this when we create Kotlin's minigame
         else -> emptyList()
     }
 
-    // if chapter completed, show a little pop-up that allows you to move to the next or back to chapter selection
     if (showChapterComplete) {
         AlertDialog(
             onDismissRequest = { },
             title = { Text("Chapter Complete!") },
-            text = { Text("You've successfully mastered the basics of ${state.currentLanguage.name}'s syntax. Ready for the next challenge?") },
+            text = {
+                Text(
+                    "You've successfully mastered the basics of ${state.currentLanguage.name}'s syntax. Ready for the next challenge?"
+                )
+            },
             confirmButton = {
-                // next chapter
-                Button(onClick = {
-                    showChapterComplete = false
-                    onNextChapter()
-                }) {
+                Button(
+                    onClick = {
+                        showChapterComplete = false
+                        onNextChapter()
+                    }
+                ) {
                     Text("Next Chapter")
                 }
             },
-            // chapter select time!
             dismissButton = {
                 TextButton(onClick = onBackPressed) {
                     Text("Chapter Select")
@@ -58,50 +56,45 @@ fun GameScreen(
         )
     }
 
-    // check for if a minigame is active, check for the minigame
     if (state.isMiniGameActive && currentNode?.triggerEvent != null) {
         when (currentNode.triggerEvent) {
             "SYNTAX_DASH" -> {
                 SyntaxSliderMinigame(
                     blocks = activeBlocks,
                     onFinished = { success ->
-                        // Route FIRST, then close the minigame overlay
                         if (success) onNodeAdvanced(109) else onNodeAdvanced(110)
                         onMinigameResult(success)
                     },
-                    // move this around, pass result to ViewModel first so it doesn't recompose incorrectly
                     onContinueAnyway = {
-                        // pass false so the ViewModel knows it wasn't a perfect run
                         onMinigameResult(false)
-
-                        // user failed but clicked "Continue Anyway"
-                        // tell the engine where to go BEFORE closing the overlay
                         onNodeAdvanced(110)
-
                     }
                 )
             }
+
             "LIGHT_SENSITIVE_SECRET" -> {
                 LightSensorMinigame(
                     onFinished = { success ->
                         onMinigameResult(success)
-
-                        // route to Chapter 3 nodes specifically
                         if (success) onNodeAdvanced(306) else onNodeAdvanced(307)
-
                     },
                     onContinueAnyway = {
                         onMinigameResult(false)
-
-                        // user pushed through without the sensor move
                         onNodeAdvanced(307)
+                    }
+                )
+            }
 
+            "EFFICIENCY_STEPPER" -> {
+                EfficiencyStepper(
+                    challenge = pythonChapterxLoopChallenges,
+                    onFinished = { success ->
+                        onMinigameResult(success)
+                        if (success) onNodeAdvanced(208) else onNodeAdvanced(209)
                     }
                 )
             }
         }
-    // if there's a current node, display the associated text and sprite
-    // means no minigame is active
     } else if (currentNode != null) {
         Box(modifier = Modifier.fillMaxSize()) {
             Surface(
@@ -110,7 +103,9 @@ fun GameScreen(
             ) {}
 
             Box(
-                modifier = Modifier.fillMaxSize().padding(bottom = 240.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 240.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -134,14 +129,17 @@ fun GameScreen(
             }
 
             Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.Bottom
             ) {
                 Card(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 160.dp),
                     shape = MaterialTheme.shapes.extraLarge,
                     onClick = {
-                        // safety check: don't advance if there are active choices to click
                         if (currentNode.choices.isNullOrEmpty()) {
                             if (currentNode.nextNodeId != null) {
                                 onNodeAdvanced(currentNode.nextNodeId)
@@ -152,7 +150,6 @@ fun GameScreen(
                         }
                     }
                 ) {
-                    // physics engine notes: the card handles the main dialogue flow
                     Column(Modifier.padding(24.dp)) {
                         Text(
                             text = currentNode.speaker,
@@ -167,21 +164,25 @@ fun GameScreen(
                         )
 
                         if (currentNode.choices.isNullOrEmpty()) {
-                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
+                            Box(
+                                Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.BottomEnd
+                            ) {
                                 Text("▼", style = MaterialTheme.typography.labelSmall)
                             }
                         }
                     }
                 }
 
-                // branching choice, generates vertical list of buttons
                 if (!currentNode.choices.isNullOrEmpty()) {
                     Spacer(Modifier.height(16.dp))
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         currentNode.choices.forEach { choice ->
                             Button(
                                 onClick = { onChoiceSelected(choice) },
-                                modifier = Modifier.fillMaxWidth().height(52.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
                                 shape = MaterialTheme.shapes.medium
                             ) {
                                 Text(choice.choiceText)
@@ -191,9 +192,11 @@ fun GameScreen(
                 }
             }
         }
-        // safety net if an error occurs, returns us back to timeline instead of crashing app
     } else {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             Button(onClick = onBackPressed) {
                 Text("Return to Timeline")
             }
