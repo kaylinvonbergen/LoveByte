@@ -7,12 +7,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.lovebyte.data.content.pythonChapter1Blocks
-import com.example.lovebyte.data.content.pythonChapterxLoopChallenges
 import com.example.lovebyte.data.model.*
-import com.example.lovebyte.ui.components.minigames.EfficiencyStepper
-import com.example.lovebyte.ui.components.minigames.SyntaxSliderMinigame
+import com.example.lovebyte.ui.components.minigames.*
+import com.example.lovebyte.data.content.*
 
+// game screen composable
 @Composable
 fun GameScreen(
     state: LoveByteState,
@@ -24,25 +23,33 @@ fun GameScreen(
     onNextChapter: () -> Unit,
     onChapterCompleted: () -> Unit
 ) {
+    // node initiation
+    // TODO: make this not a dummy node soon
     var showChapterComplete by remember { mutableStateOf(false) }
 
+    // dynamically select blocks based on the current character/language
+    val activeBlocks = when (state.currentLanguage.name.uppercase()) {
+        "PYTHON" -> pythonChapter1Blocks
+        // "KOTLIN" -> kotlinChapter1Blocks // TODO: add this when we create Kotlin's minigame
+        else -> emptyList()
+    }
+
+    // if chapter completed, show a little pop-up that allows you to move to the next or back to chapter selection
     if (showChapterComplete) {
         AlertDialog(
             onDismissRequest = { },
             title = { Text("Chapter Complete!") },
-            text = {
-                Text("You've successfully mastered the basics of Python's syntax. Ready for the next challenge?")
-            },
+            text = { Text("You've successfully mastered the basics of ${state.currentLanguage.name}'s syntax. Ready for the next challenge?") },
             confirmButton = {
-                Button(
-                    onClick = {
-                        showChapterComplete = false
-                        onNextChapter()
-                    }
-                ) {
+                // next chapter
+                Button(onClick = {
+                    showChapterComplete = false
+                    onNextChapter()
+                }) {
                     Text("Next Chapter")
                 }
             },
+            // chapter select time!
             dismissButton = {
                 TextButton(onClick = onBackPressed) {
                     Text("Chapter Select")
@@ -51,148 +58,144 @@ fun GameScreen(
         )
     }
 
-    when {
-        state.isMiniGameActive && currentNode?.triggerEvent == "SYNTAX_DASH" -> {
-            SyntaxSliderMinigame(
-                blocks = pythonChapter1Blocks,
-                onFinished = { success ->
-                    onMinigameResult(success)
+    // check for if a minigame is active, check for the minigame
+    if (state.isMiniGameActive && currentNode?.triggerEvent != null) {
+        when (currentNode.triggerEvent) {
+            "SYNTAX_DASH" -> {
+                SyntaxSliderMinigame(
+                    blocks = activeBlocks,
+                    onFinished = { success ->
+                        // Route FIRST, then close the minigame overlay
+                        if (success) onNodeAdvanced(109) else onNodeAdvanced(110)
+                        onMinigameResult(success)
+                    },
+                    // move this around, pass result to ViewModel first so it doesn't recompose incorrectly
+                    onContinueAnyway = {
+                        // pass false so the ViewModel knows it wasn't a perfect run
+                        onMinigameResult(false)
 
-                    if (success) {
-                        onNodeAdvanced(109)
-                    } else {
+                        // user failed but clicked "Continue Anyway"
+                        // tell the engine where to go BEFORE closing the overlay
                         onNodeAdvanced(110)
+
                     }
-                },
-                onContinueAnyway = {
-                    onNodeAdvanced(110)
-                    onMinigameResult(false)
-                }
-            )
-        }
+                )
+            }
+            "LIGHT_SENSITIVE_SECRET" -> {
+                LightSensorMinigame(
+                    onFinished = { success ->
+                        onMinigameResult(success)
 
-        state.isMiniGameActive && currentNode?.triggerEvent == "EFFICIENCY_STEPPER" -> {
-            EfficiencyStepper(
-                challenge = pythonChapterxLoopChallenges,
-                onFinished = { success ->
-                    onMinigameResult(success)
+                        // route to Chapter 3 nodes specifically
+                        if (success) onNodeAdvanced(306) else onNodeAdvanced(307)
 
-                    if (success) {
-                        onNodeAdvanced(208)
-                    } else {
-                        onNodeAdvanced(209)
+                    },
+                    onContinueAnyway = {
+                        onMinigameResult(false)
+
+                        // user pushed through without the sensor move
+                        onNodeAdvanced(307)
+
                     }
-                }
-            )
+                )
+            }
         }
+    // if there's a current node, display the associated text and sprite
+    // means no minigame is active
+    } else if (currentNode != null) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.1f)
+            ) {}
 
-        currentNode != null -> {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.1f)
-                ) {}
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 240.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(bottom = 240.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "[ ${state.currentLanguage.name} Sprite ]",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Surface(
+                        shape = MaterialTheme.shapes.small,
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
                         Text(
-                            text = "[ ${state.currentLanguage.name} Sprite ]",
-                            style = MaterialTheme.typography.headlineMedium,
+                            currentNode.emotion,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                verticalArrangement = Arrangement.Bottom
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 160.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    onClick = {
+                        // safety check: don't advance if there are active choices to click
+                        if (currentNode.choices.isNullOrEmpty()) {
+                            if (currentNode.nextNodeId != null) {
+                                onNodeAdvanced(currentNode.nextNodeId)
+                            } else {
+                                onChapterCompleted()
+                                showChapterComplete = true
+                            }
+                        }
+                    }
+                ) {
+                    // physics engine notes: the card handles the main dialogue flow
+                    Column(Modifier.padding(24.dp)) {
+                        Text(
+                            text = currentNode.speaker,
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Surface(
-                            shape = MaterialTheme.shapes.small,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.padding(top = 8.dp)
-                        ) {
-                            Text(
-                                text = currentNode.emotion,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = currentNode.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                            lineHeight = 24.sp
+                        )
+
+                        if (currentNode.choices.isNullOrEmpty()) {
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
+                                Text("▼", style = MaterialTheme.typography.labelSmall)
+                            }
                         }
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Bottom
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 160.dp),
-                        shape = MaterialTheme.shapes.extraLarge,
-                        onClick = {
-                            if (currentNode.choices.isNullOrEmpty()) {
-                                if (currentNode.nextNodeId != null) {
-                                    onNodeAdvanced(currentNode.nextNodeId)
-                                } else {
-                                    onChapterCompleted()
-                                    showChapterComplete = true
-                                }
-                            }
-                        }
-                    ) {
-                        Column(Modifier.padding(24.dp)) {
-                            Text(
-                                text = currentNode.speaker,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                text = currentNode.text,
-                                style = MaterialTheme.typography.bodyLarge,
-                                lineHeight = 24.sp
-                            )
-
-                            if (currentNode.choices.isNullOrEmpty()) {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.BottomEnd
-                                ) {
-                                    Text("▼", style = MaterialTheme.typography.labelSmall)
-                                }
-                            }
-                        }
-                    }
-
-                    if (!currentNode.choices.isNullOrEmpty()) {
-                        Spacer(Modifier.height(16.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            currentNode.choices.forEach { choice ->
-                                Button(
-                                    onClick = { onChoiceSelected(choice) },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(52.dp),
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Text(choice.choiceText)
-                                }
+                // branching choice, generates vertical list of buttons
+                if (!currentNode.choices.isNullOrEmpty()) {
+                    Spacer(Modifier.height(16.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        currentNode.choices.forEach { choice ->
+                            Button(
+                                onClick = { onChoiceSelected(choice) },
+                                modifier = Modifier.fillMaxWidth().height(52.dp),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(choice.choiceText)
                             }
                         }
                     }
                 }
             }
         }
-
-        else -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Button(onClick = onBackPressed) {
-                    Text("Return to Timeline")
-                }
+        // safety net if an error occurs, returns us back to timeline instead of crashing app
+    } else {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Button(onClick = onBackPressed) {
+                Text("Return to Timeline")
             }
         }
     }

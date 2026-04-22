@@ -8,7 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.example.lovebyte.data.model.DialogueNode
-import com.example.lovebyte.data.content.narrativeNodes
+// Swapped narrativeNodes for the master registry
+import com.example.lovebyte.data.content.allNarrativeContent
 import com.example.lovebyte.BuildConfig
 
 import android.app.Application
@@ -233,14 +234,18 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
 
 
-    // Returns the current dialogue node based on the saved dialogue index.
+    // Returns the current dialogue node based on the saved dialogue index AND language.
     fun getCurrentNode(): DialogueNode? {
-        return narrativeNodes[_state.value.dialogueIndex]
+        val currentLangName = _state.value.currentLanguage.name.uppercase()
+        val nodesForLanguage = allNarrativeContent[currentLangName] ?: emptyMap()
+        return nodesForLanguage[_state.value.dialogueIndex]
     }
 
     // Advances the story to a specific dialogue node and updates mini-game state if needed.
     fun advanceToNode(nextId: Int) {
-        val nextNode = narrativeNodes[nextId]
+        val currentLangName = _state.value.currentLanguage.name.uppercase()
+        val nodesForLanguage = allNarrativeContent[currentLangName] ?: emptyMap()
+        val nextNode = nodesForLanguage[nextId]
 
         _state.value = _state.value.copy(
             dialogueIndex = nextId,
@@ -253,7 +258,9 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
     // Handles a dialogue choice by moving to that choice's target node.
     fun handleChoiceSelected(choice: DialogueChoice) {
-        val nextNode = narrativeNodes[choice.targetNodeId]
+        val currentLangName = _state.value.currentLanguage.name.uppercase()
+        val nodesForLanguage = allNarrativeContent[currentLangName] ?: emptyMap()
+        val nextNode = nodesForLanguage[choice.targetNodeId]
 
         _state.value = _state.value.copy(
             dialogueIndex = choice.targetNodeId,
@@ -266,12 +273,10 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
     // Handles the result of a mini-game by sending the player to the success or failure node.
     fun handleMinigameResult(success: Boolean) {
-        _state.value = _state.value.copy(
-            isMiniGameActive = false,
-            dialogueIndex = if (success) 109 else 110
-        )
+        val targetNode = if (success) 109 else 110
 
-        saveCurrentProgress()
+        // Using advanceToNode ensures the language-specific map is checked
+        advanceToNode(targetNode)
     }
 
     // Resumes a chapter from saved progress if the saved node belongs to that chapter.
