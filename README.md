@@ -17,8 +17,8 @@
 - [ ] "Cute-ify" the UI, it's currently functional, but not pretty
 - [ ] Polish UX, quality of life updates to navigation
 - [ ] Work on game content
-- [ ] Develop further minigames
-- [ ] Make it possible to fail minigames
+- [x] Develop further minigames
+- [x] Make it possible to fail minigames
 - [ ] Establish sentiment/feelings systems and Love/Friend/Hate routes
 - [ ] Potentially implement audio?
 - [ ] Implement settings screen
