@@ -7,15 +7,19 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -24,9 +28,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.data.model.SliderBlock
+import com.example.lovebyte.ui.components.general.PixelButton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+
+
 
 // the base game composable
 @Composable
@@ -56,6 +63,14 @@ fun SyntaxSliderMinigame(
     val gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     var tiltVelocity by remember { mutableFloatStateOf(0f) }
 
+    // color palette
+    val deepPink = Color(0xFFFF85A1)
+    val inkBrown = Color(0xFF5D4037)
+    val pixelWhite = Color(0xFFFFFFFF)
+    val softMatcha = Color(0xFFD8E2DC)
+    val darkMatcha = Color(0xFF819289)
+    val pixelRoundedShape = CutCornerShape(8.dp)
+
     // countdown timer logic
     LaunchedEffect(key1 = timeLeft, key2 = isGameOver) {
         if (timeLeft > 0 && !isGameOver && currentActiveIndex < blocks.size) {
@@ -71,23 +86,40 @@ fun SyntaxSliderMinigame(
     if (isGameOver) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Compilation Error") },
-            text = { Text("The logic slipped through your fingers. The system is unstable. Restart the dash or push through with errors?") },
+            shape = pixelRoundedShape,
+            containerColor = pixelWhite,
+            modifier = Modifier.border(4.dp, Color.Red, pixelRoundedShape),
+            title = {
+                Text(
+                    "COMPILATION ERROR",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Red
+                )
+            },
+            text = {
+                Text(
+                    "The logic slipped through your fingers. The system is unstable. Restart the dash or push through with errors?",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = inkBrown
+                )
+            },
             confirmButton = {
-                Button(onClick = {
-                    // reset local game state for a retry
-                    timeLeft = timeLimitSeconds
-                    currentActiveIndex = 0
-                    isGameOver = false
-                }) {
-                    Text("Retry")
-                }
+                PixelButton(
+                    text = "RETRY",
+                    onClick = {
+                        // reset local game state for a retry
+                        timeLeft = timeLimitSeconds
+                        currentActiveIndex = 0
+                        isGameOver = false
+                    },
+                    color = deepPink
+                )
             },
             dismissButton = {
                 TextButton(onClick = {
                     onContinueAnyway()
                 }) {
-                    Text("Continue Anyway")
+                    Text("CONTINUE ANYWAY", style = MaterialTheme.typography.labelLarge, color = inkBrown)
                 }
             }
         )
@@ -124,34 +156,39 @@ fun SyntaxSliderMinigame(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFFFFF5F7))
             .padding(16.dp)
     ) {
         // header w/ accessibility switch and timer
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
                 Text(
-                    text = if (isPublicMode) "Public Mode (Drag)" else "Private Mode (Tilt)",
+                    text = if (isPublicMode) "PUBLIC MODE (DRAG)" else "PRIVATE MODE (TILT)",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = deepPink
                 )
                 Switch(
                     checked = isPublicMode,
-                    onCheckedChange = { isPublicMode = it }
+                    onCheckedChange = { isPublicMode = it },
+                    colors = SwitchDefaults.colors(checkedThumbColor = deepPink)
                 )
             }
 
             // visual timer
             Column(horizontalAlignment = Alignment.End) {
-                Text("System Stability", style = MaterialTheme.typography.labelSmall)
+                Text(
+                    "SYSTEM STABILITY",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = inkBrown
+                )
                 Text(
                     text = "${timeLeft}s",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = if (timeLeft < 10) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    color = if (timeLeft < 10) Color.Red else darkMatcha
                 )
             }
         }
@@ -161,11 +198,14 @@ fun SyntaxSliderMinigame(
             progress = { timeLeft.toFloat() / timeLimitSeconds.toFloat() },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            color = if (timeLeft < 10) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                .height(12.dp)
+                .border(2.dp, inkBrown),
+            color = if (timeLeft < 10) Color.Red else softMatcha,
+            trackColor = pixelWhite,
+            strokeCap = StrokeCap.Butt
         )
 
-        Box(modifier = Modifier.weight(1f).padding(top = 12.dp)) {
+        Box(modifier = Modifier.weight(1f).padding(top = 24.dp)) {
 
             // background grid to show tab lines?
             // TODO: polish these eventually
@@ -175,7 +215,7 @@ fun SyntaxSliderMinigame(
                         Modifier
                             .width(1.dp)
                             .fillMaxHeight()
-                            .background(Color.Gray.copy(alpha = 0.1f))
+                            .background(deepPink.copy(alpha = 0.1f))
                     )
                     Spacer(Modifier.width(90.dp))
                 }
@@ -183,7 +223,7 @@ fun SyntaxSliderMinigame(
 
             // actual coding block lines
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 itemsIndexed(blocks, key = { _, block -> block.id }) { index, block ->
                     SyntaxPuzzleLine(
@@ -193,6 +233,8 @@ fun SyntaxSliderMinigame(
                         tiltVelocity = tiltVelocity,
                         isPublicMode = isPublicMode,
                         tabWidthPx = tabWidthPx,
+                        deepPink = deepPink,
+                        inkBrown = inkBrown,
                         onSlotted = {
                             if (index == currentActiveIndex) {
                                 // FIXED: the neutral phone angle thing shouldn't apply if it's in public mode
@@ -207,45 +249,45 @@ fun SyntaxSliderMinigame(
 
         // instructions
         Surface(
-            tonalElevation = 3.dp,
-            shape = MaterialTheme.shapes.large,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp)
+                .border(3.dp, deepPink, pixelRoundedShape),
+            color = pixelWhite,
+            shape = pixelRoundedShape
         ) {
             Column(Modifier.padding(20.dp)) {
                 Text(
                     text = when {
-                        isGameOver -> "System Crash!"
-                        isWaitingForNeutral && !isPublicMode -> "Hold steady..."
-                        else -> "Assemble the Logic"
+                        isGameOver -> "SYSTEM CRASH!"
+                        isWaitingForNeutral && !isPublicMode -> "HOLD STEADY..."
+                        else -> "ASSEMBLE THE LOGIC"
                     },
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = if (isWaitingForNeutral || isGameOver)
-                        MaterialTheme.colorScheme.error
-                    else
-                        MaterialTheme.colorScheme.primary
+                    style = MaterialTheme.typography.titleSmall,
+                    color = if (isWaitingForNeutral || isGameOver) Color.Red else deepPink
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = if (isPublicMode) "Drag the block to its matching ghost slot."
                     else "Gently tilt your phone to slide the block into its slot.",
                     style = MaterialTheme.typography.bodyMedium,
-                    lineHeight = 22.sp
+                    color = inkBrown
                 )
             }
         }
 
         // "finished button"
-        Button(
+        PixelButton(
+            text = "RUN SCRIPT",
             onClick = { onFinished(true) },
             enabled = currentActiveIndex >= blocks.size && !isGameOver,
+            color = if (currentActiveIndex >= blocks.size) softMatcha else Color.Gray,
+            // Pass the darker color here for contrast
+            textColor = if (currentActiveIndex >= blocks.size) inkBrown else Color.White,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-        ) {
-            Text("Run Script", style = MaterialTheme.typography.titleLarge)
-        }
+                .alpha(if (currentActiveIndex >= blocks.size) 1f else 0.5f)
+        )
     }
 }
 
@@ -257,6 +299,8 @@ private fun SyntaxPuzzleLine(
     tiltVelocity: Float,
     isPublicMode: Boolean,
     tabWidthPx: Float,
+    deepPink: Color,
+    inkBrown: Color,
     onSlotted: () -> Unit
 ) {
     val density = LocalDensity.current
@@ -266,6 +310,7 @@ private fun SyntaxPuzzleLine(
 
     val codeTextStyle = MaterialTheme.typography.bodyMedium.copy(
         fontSize = 16.sp,
+        fontFamily = FontFamily.Monospace,
         platformStyle = PlatformTextStyle(includeFontPadding = false)
     )
 
@@ -277,7 +322,7 @@ private fun SyntaxPuzzleLine(
                 if (offsetX.value == 0f) offsetX.snapTo(0f)
             }
             else -> offsetX.animateTo(
-                20f,
+                10f,
                 infiniteRepeatable(tween(2000), RepeatMode.Reverse)
             )
         }
@@ -287,10 +332,10 @@ private fun SyntaxPuzzleLine(
     LaunchedEffect(tiltVelocity, isActive) {
         if (isActive && !isPublicMode) {
             val targetX = block.targetLevel * tabWidthPx
-            val newOffset = (offsetX.value + (tiltVelocity * 50f)).coerceIn(0f, 1000f)
+            val newOffset = (offsetX.value + (tiltVelocity * 60f)).coerceIn(0f, 1000f)
             offsetX.snapTo(newOffset)
 
-            if (abs(offsetX.value - targetX) < 25f) {
+            if (abs(offsetX.value - targetX) < 30f) {
                 offsetX.animateTo(targetX, spring(stiffness = Spring.StiffnessMediumLow))
                 onSlotted()
             }
@@ -300,29 +345,27 @@ private fun SyntaxPuzzleLine(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(52.dp)
     ) {
         Box(
             modifier = Modifier.matchParentSize(),
             contentAlignment = Alignment.CenterStart
         ) {
             if (isActive || !isSolved) {
+                // ghost target slot
                 Surface(
-                    modifier = Modifier.offset(
-                        x = with(density) {
-                            (block.targetLevel * tabWidthPx).toDp()
-                        }
-                    ),
-                    color = Color.Black.copy(alpha = 0.05f),
-                    shape = MaterialTheme.shapes.small
+                    modifier = Modifier
+                        .offset(x = with(density) { (block.targetLevel * tabWidthPx).toDp() })
+                        .border(1.dp, deepPink.copy(alpha = 0.3f), CutCornerShape(4.dp)),
+                    color = deepPink.copy(alpha = 0.05f),
+                    shape = CutCornerShape(4.dp)
                 ) {
                     Text(
                         text = block.code,
                         modifier = Modifier.padding(
                             horizontal = cardHorizontalPadding,
-                            vertical = 12.dp
+                            vertical = 8.dp
                         ),
-                        fontFamily = FontFamily.Monospace,
                         style = codeTextStyle,
                         color = Color.Transparent,
                         maxLines = 1
@@ -330,7 +373,8 @@ private fun SyntaxPuzzleLine(
                 }
             }
 
-            Card(
+            // the sliding block
+            Surface(
                 modifier = Modifier
                     .offset(x = with(density) { offsetX.value.toDp() })
                     .then(
@@ -344,7 +388,7 @@ private fun SyntaxPuzzleLine(
                                             offsetX.snapTo(newX)
 
                                             val targetX = block.targetLevel * tabWidthPx
-                                            if (abs(newX - targetX) < 25f) {
+                                            if (abs(newX - targetX) < 30f) {
                                                 offsetX.animateTo(targetX, spring(stiffness = Spring.StiffnessMediumLow))
                                                 onSlotted()
                                             }
@@ -353,30 +397,24 @@ private fun SyntaxPuzzleLine(
                                 )
                             }
                         } else Modifier
+                    )
+                    .border(
+                        width = if (isActive) 3.dp else 1.dp,
+                        color = if (isSolved) Color(0xFF4CAF50) else if (isActive) deepPink else Color.Gray,
+                        shape = CutCornerShape(4.dp)
                     ),
-                colors = CardDefaults.cardColors(
-                    containerColor = when {
-                        isSolved -> MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
-                        isActive -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
-                        else -> Color.Gray.copy(alpha = 0.1f)
-                    }
-                ),
-                shape = MaterialTheme.shapes.small,
-                elevation = if (isActive)
-                    CardDefaults.cardElevation(defaultElevation = 4.dp)
-                else
-                    CardDefaults.cardElevation(0.dp)
+                color = if (isSolved) Color(0xFFE8F5E9) else Color.White,
+                shape = CutCornerShape(4.dp)
             ) {
                 Text(
                     text = block.code,
                     modifier = Modifier.padding(
                         horizontal = cardHorizontalPadding,
-                        vertical = 12.dp
+                        vertical = 8.dp
                     ),
-                    fontFamily = FontFamily.Monospace,
                     style = codeTextStyle,
                     color = if (isSolved) Color(0xFF1B5E20)
-                    else MaterialTheme.colorScheme.onSurface,
+                    else inkBrown,
                     maxLines = 1
                 )
             }

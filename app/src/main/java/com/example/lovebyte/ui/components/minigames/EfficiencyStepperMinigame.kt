@@ -6,18 +6,24 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.data.model.EfficiencyLoopChallenge
+import com.example.lovebyte.ui.components.general.PixelButton
 import kotlinx.coroutines.delay
 
 @Composable
@@ -32,20 +38,22 @@ fun EfficiencyStepper(
         context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     }
 
-    val stepDetectorSensor = remember {
-        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
-    }
-    val stepCounterSensor = remember {
-        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-    }
+    // color palette
+    val softMatcha = Color(0xFFB2F2BB)
+    val deepPink = Color(0xFFFF85A1)
+    val inkBrown = Color(0xFF5D4037)
+    val pixelWhite = Color(0xFFFFFFFF)
+    val pixelRoundedShape = CutCornerShape(8.dp)
+
+    val stepDetectorSensor = remember { sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR) }
+    val stepCounterSensor = remember { sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER) }
 
     var baselineStepCount by remember { mutableStateOf<Float?>(null) }
     var stepsTaken by remember { mutableIntStateOf(0) }
     var sensorAvailable by remember { mutableStateOf(true) }
-
     var isPublicMode by remember { mutableStateOf(false) }
 
-    // Public mode state
+    // public mode state (Slider logic)
     var passesCompleted by remember { mutableIntStateOf(0) }
     var sliderPosition by remember { mutableFloatStateOf(0f) }
     var passLocked by remember { mutableStateOf(false) }
@@ -64,18 +72,20 @@ fun EfficiencyStepper(
         }
     }
 
-    // failure dialog
+    // FAILURE DIALOG
     if (isGameOver) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Out of Time") },
+            shape = pixelRoundedShape,
+            containerColor = pixelWhite,
+            modifier = Modifier.border(4.dp, Color.Red, pixelRoundedShape),
+            title = { Text("COMPILATION HALTED", color = Color.Red) },
             text = {
-                Text(
-                    "You ran out of time before reaching the correct loop count. Retry the challenge or continue anyway?"
-                )
+                Text("The efficiency loop timed out. Optimization failed. Retry or skip?", color = inkBrown)
             },
             confirmButton = {
-                Button(
+                PixelButton(
+                    text = "RETRY",
                     onClick = {
                         timeLeft = timeLimitSeconds
                         isGameOver = false
@@ -84,23 +94,19 @@ fun EfficiencyStepper(
                         passesCompleted = 0
                         sliderPosition = 0f
                         passLocked = false
-                    }
-                ) {
-                    Text("Retry")
-                }
+                    },
+                    color = deepPink
+                )
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        onContinueAnyway()
-                    }
-                ) {
-                    Text("Continue Anyway")
+                TextButton(onClick = onContinueAnyway) {
+                    Text("CONTINUE ANYWAY", color = inkBrown)
                 }
             }
         )
     }
 
+    // hardware lifecycle: Register sensor only in Private Mode to save battery
     DisposableEffect(isPublicMode, isGameOver) {
         if (isPublicMode || isGameOver) {
             onDispose { }
@@ -108,66 +114,39 @@ fun EfficiencyStepper(
             val listener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent?) {
                     event ?: return
-
                     when (event.sensor.type) {
-                        Sensor.TYPE_STEP_DETECTOR -> {
-                            stepsTaken += 1
-                        }
-
+                        Sensor.TYPE_STEP_DETECTOR -> stepsTaken += 1
                         Sensor.TYPE_STEP_COUNTER -> {
                             val absoluteSteps = event.values[0]
-                            if (baselineStepCount == null) {
-                                baselineStepCount = absoluteSteps
-                            }
-                            stepsTaken = (absoluteSteps - (baselineStepCount ?: absoluteSteps))
-                                .toInt()
-                                .coerceAtLeast(0)
+                            if (baselineStepCount == null) baselineStepCount = absoluteSteps
+                            stepsTaken = (absoluteSteps - (baselineStepCount ?: absoluteSteps)).toInt().coerceAtLeast(0)
                         }
                     }
                 }
-
                 override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
             }
 
             val registered = when {
-                stepDetectorSensor != null -> {
-                    sensorManager.registerListener(
-                        listener,
-                        stepDetectorSensor,
-                        SensorManager.SENSOR_DELAY_GAME
-                    )
-                }
-
-                stepCounterSensor != null -> {
-                    sensorManager.registerListener(
-                        listener,
-                        stepCounterSensor,
-                        SensorManager.SENSOR_DELAY_GAME
-                    )
-                }
-
+                stepDetectorSensor != null -> sensorManager.registerListener(listener, stepDetectorSensor, SensorManager.SENSOR_DELAY_GAME)
+                stepCounterSensor != null -> sensorManager.registerListener(listener, stepCounterSensor, SensorManager.SENSOR_DELAY_GAME)
                 else -> false
             }
-
             sensorAvailable = registered
-
-            onDispose {
-                sensorManager.unregisterListener(listener)
-            }
+            onDispose { sensorManager.unregisterListener(listener) }
         }
     }
 
     val currentCount = if (isPublicMode) passesCompleted else stepsTaken
     val isCorrect = currentCount >= challenge.correctSteps
-    val progress = if (challenge.correctSteps == 0) 1f
-    else (currentCount.toFloat() / challenge.correctSteps.toFloat()).coerceIn(0f, 1f)
+    val progress = if (challenge.correctSteps == 0) 1f else (currentCount.toFloat() / challenge.correctSteps.toFloat()).coerceIn(0f, 1f)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFFFFF5F7))
             .padding(16.dp)
     ) {
+        // --- HEADER ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -175,82 +154,77 @@ fun EfficiencyStepper(
         ) {
             Column {
                 Text(
-                    text = if (isPublicMode) "Public Mode (Slider)" else "Private Mode (Steps)",
+                    text = if (isPublicMode) "PUBLIC MODE (SLIDE)" else "PRIVATE MODE (STEPS)",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = deepPink
                 )
                 Switch(
                     checked = isPublicMode,
                     onCheckedChange = {
                         if (!isGameOver) {
                             isPublicMode = it
+                            // flush state on switch to prevent "ghost wins"
                             baselineStepCount = null
                             stepsTaken = 0
                             passesCompleted = 0
                             sliderPosition = 0f
                             passLocked = false
                         }
-                    }
+                    },
+                    colors = SwitchDefaults.colors(checkedThumbColor = deepPink)
                 )
             }
 
             Column(horizontalAlignment = Alignment.End) {
-                Text("Time Left", style = MaterialTheme.typography.labelSmall)
+                Text("OPTIMIZATION TIME", style = MaterialTheme.typography.labelSmall, color = inkBrown)
                 Text(
                     text = "${timeLeft}s",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = if (timeLeft < 10) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.primary
-                    }
+                    color = if (timeLeft < 10) Color.Red else softMatcha
                 )
             }
         }
 
+        // stability/timer bar
         LinearProgressIndicator(
             progress = { timeLeft.toFloat() / timeLimitSeconds.toFloat() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            color = if (timeLeft < 10) {
-                MaterialTheme.colorScheme.error
-            } else {
-                MaterialTheme.colorScheme.primary
-            }
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Efficiency Stepper",
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = challenge.prompt,
-            style = MaterialTheme.typography.bodyLarge,
-            lineHeight = 24.sp
+            modifier = Modifier.fillMaxWidth().height(12.dp).border(2.dp, inkBrown),
+            color = if (timeLeft < 10) Color.Red else softMatcha,
+            trackColor = pixelWhite,
+            strokeCap = StrokeCap.Butt
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large
+        Text(
+            text = "EFFICIENCY STEPPER",
+            style = MaterialTheme.typography.headlineSmall,
+            color = deepPink
+        )
+
+        Text(
+            text = challenge.prompt,
+            style = MaterialTheme.typography.bodyMedium,
+            color = inkBrown,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        // --- CODE PREVIEW CARD ---
+        Surface(
+            modifier = Modifier.fillMaxWidth().border(2.dp, deepPink, pixelRoundedShape),
+            color = pixelWhite,
+            shape = pixelRoundedShape
         ) {
             LazyColumn(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 items(challenge.codeLines) { line ->
                     Text(
                         text = line,
                         fontFamily = FontFamily.Monospace,
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodySmall,
+                        color = inkBrown
                     )
                 }
             }
@@ -258,16 +232,19 @@ fun EfficiencyStepper(
 
         Spacer(modifier = Modifier.height(20.dp))
 
+        // --- INTERACTION AREA ---
         if (isPublicMode) {
             PublicModePassSlider(
                 currentCount = passesCompleted,
                 targetCount = challenge.correctSteps,
                 sliderPosition = sliderPosition,
                 enabled = !isGameOver,
+                softMatcha = softMatcha,
+                inkBrown = inkBrown,
+                pixelWhite = pixelWhite,
                 onSliderPositionChange = { newValue ->
                     if (!passLocked && !isGameOver) {
                         sliderPosition = newValue
-
                         if (newValue >= 0.98f) {
                             passesCompleted += 1
                             passLocked = true
@@ -282,54 +259,34 @@ fun EfficiencyStepper(
                 }
             )
         } else if (!sensorAvailable) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "No step sensor was found on this device.",
-                    modifier = Modifier.padding(16.dp),
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
+            Text("Hardware Step Sensor unavailable.", color = Color.Red)
         } else {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large
+            // STEP COUNTER UI
+            Surface(
+                modifier = Modifier.fillMaxWidth().border(3.dp, deepPink, pixelRoundedShape),
+                color = pixelWhite,
+                shape = pixelRoundedShape
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Text("LOOP ITERATIONS REQUIRED: ${challenge.correctSteps}", color = inkBrown)
                     Text(
-                        text = "Target steps: ${challenge.correctSteps}",
-                        style = MaterialTheme.typography.titleMedium
+                        text = "$stepsTaken",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = if (isCorrect) softMatcha else deepPink
                     )
-
-                    Text(
-                        text = "Your steps: $stepsTaken",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = if (isCorrect) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
-                    )
-
                     LinearProgressIndicator(
                         progress = { progress },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).height(8.dp).border(1.dp, inkBrown),
+                        color = softMatcha,
+                        trackColor = Color.Transparent
                     )
-
                     Text(
-                        text = if (isCorrect) {
-                            "Nice! You reached the target."
-                        } else {
-                            "Keep walking until you reach the loop count."
-                        },
-                        style = MaterialTheme.typography.bodyMedium
+                        text = if (isCorrect) "OPTIMIZATION COMPLETE" else "KEEP MOVING TO SCALE THE LOOP",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isCorrect) softMatcha else inkBrown
                     )
                 }
             }
@@ -337,11 +294,13 @@ fun EfficiencyStepper(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // --- FOOTER BUTTONS ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedButton(
+            PixelButton(
+                text = "RESET",
                 onClick = {
                     baselineStepCount = null
                     stepsTaken = 0
@@ -351,19 +310,19 @@ fun EfficiencyStepper(
                     timeLeft = timeLimitSeconds
                     isGameOver = false
                 },
-                enabled = !isGameOver,
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Reset")
-            }
+                color = Color.Gray,
+                modifier = Modifier.weight(1f),
+                enabled = !isGameOver
+            )
 
-            Button(
+            PixelButton(
+                text = "COMPILE",
                 onClick = { onFinished(isCorrect) },
-                enabled = isCorrect && !isGameOver && (isPublicMode || sensorAvailable),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Submit")
-            }
+                enabled = isCorrect && !isGameOver,
+                color = if (isCorrect) softMatcha else Color.LightGray,
+                textColor = if (isCorrect) inkBrown else Color.White,
+                modifier = Modifier.weight(1.2f)
+            )
         }
     }
 }
@@ -374,47 +333,29 @@ private fun PublicModePassSlider(
     targetCount: Int,
     sliderPosition: Float,
     enabled: Boolean,
+    softMatcha: Color,
+    inkBrown: Color,
+    pixelWhite: Color,
     onSliderPositionChange: (Float) -> Unit,
     onSliderReleased: () -> Unit
 ) {
-    val progress = if (targetCount == 0) 1f
-    else (currentCount.toFloat() / targetCount.toFloat()).coerceIn(0f, 1f)
+    val progress = if (targetCount == 0) 1f else (currentCount.toFloat() / targetCount.toFloat()).coerceIn(0f, 1f)
+    val pixelRoundedShape = CutCornerShape(8.dp)
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large
+    Surface(
+        modifier = Modifier.fillMaxWidth().border(3.dp, inkBrown, pixelRoundedShape),
+        color = pixelWhite,
+        shape = pixelRoundedShape
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Drag the slider to the end $targetCount time(s).",
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Text(
-                text = "Completed passes: $currentCount / $targetCount",
-                style = MaterialTheme.typography.titleLarge,
-                color = if (currentCount >= targetCount) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                }
-            )
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text("ITERATION PASSES: $currentCount / $targetCount", style = MaterialTheme.typography.titleSmall, color = inkBrown)
 
             LinearProgressIndicator(
                 progress = { progress },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Text(
-                text = if (currentCount >= targetCount) {
-                    "Nice! You reached the target."
-                } else {
-                    "Slide all the way across, then repeat."
-                },
-                style = MaterialTheme.typography.bodyMedium
+                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp).height(12.dp).border(2.dp, inkBrown),
+                color = softMatcha,
+                trackColor = Color.Transparent,
+                strokeCap = StrokeCap.Butt
             )
 
             Slider(
@@ -423,7 +364,13 @@ private fun PublicModePassSlider(
                 valueRange = 0f..1f,
                 onValueChangeFinished = onSliderReleased,
                 enabled = enabled,
-                modifier = Modifier.fillMaxWidth()
+                colors = SliderDefaults.colors(thumbColor = inkBrown, activeTrackColor = softMatcha)
+            )
+
+            Text(
+                "Drag the slider $targetCount times to optimize.",
+                style = MaterialTheme.typography.labelSmall,
+                color = inkBrown.copy(alpha = 0.6f)
             )
         }
     }

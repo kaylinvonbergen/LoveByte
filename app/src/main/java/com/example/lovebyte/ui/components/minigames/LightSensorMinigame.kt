@@ -1,4 +1,5 @@
 package com.example.lovebyte.ui.components.minigames
+
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -6,7 +7,9 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,15 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
-// for 'by remember' delegated properties
-// https://developer.android.com/develop/ui/compose/state
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.SolidColor
-
+import androidx.compose.ui.unit.sp
+import com.example.lovebyte.ui.components.general.PixelButton
 import kotlinx.coroutines.delay
-
 
 @Composable
 fun LightSensorMinigame(
@@ -34,6 +31,12 @@ fun LightSensorMinigame(
     val sensorManager = remember { context.getSystemService(Context.SENSOR_SERVICE) as SensorManager }
     val lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT)
 
+    // color palatte
+    val softMatcha = Color(0xFFB2F2BB)
+    val deepPink = Color(0xFFFF85A1)
+    val inkBrown = Color(0xFF5D4037)
+    val pixelWhite = Color(0xFFFFFFFF)
+
     // for toggle between sensor and "public" mode
     var isPublicMode by remember { mutableStateOf(false) }
 
@@ -44,26 +47,24 @@ fun LightSensorMinigame(
     var showSkipButton by remember { mutableStateOf(false) }
 
     // give it a warmup so it doesn't just immediately assume it's dark enough
-    var canFinish by remember { mutableStateOf(false) }
-
+    var canFinish by remember(isPublicMode) { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        delay(500L) /// wait 0.5s to let the sensor calibrate
+        delay(1000L) /// wait 1s to let the sensor calibrate
         canFinish = true
     }
 
-    // show skip button after 10 seconds
+    // show skip button after 5 seconds (matched your code delay)
     LaunchedEffect(Unit) {
         delay(5000L)
         showSkipButton = true
     }
 
-
-
     // register sensor only if NOT in public mode
     DisposableEffect(isPublicMode) {
         if (isPublicMode) {
-            // dispose it if we're in public mode
+            // reset lux value when entering public mode so we don't have stale dark values
+            luxValue = 100f
             onDispose { }
         } else {
             // get listener for hardware light changes
@@ -83,7 +84,11 @@ fun LightSensorMinigame(
             sensorManager.registerListener(listener, lightSensor, SensorManager.SENSOR_DELAY_UI)
 
             // dispose the sensor once the minigame is closed in order to save battery
-            onDispose { sensorManager.unregisterListener(listener) }
+            onDispose {
+                sensorManager.unregisterListener(listener)
+                // rsetting lux here prevents auto-win on re-entry
+                luxValue = 100f
+            }
         }
     }
 
@@ -91,7 +96,7 @@ fun LightSensorMinigame(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.9f))
+            .background(Color.Black.copy(alpha = 0.95f)) // slightly darker for "Shadows" theme
             .padding(24.dp)
     ) {
         // accessibility toggle ("public" mode)
@@ -101,13 +106,14 @@ fun LightSensorMinigame(
         ) {
             Switch(
                 checked = isPublicMode,
-                onCheckedChange = { isPublicMode = it }
+                onCheckedChange = { isPublicMode = it },
+                colors = SwitchDefaults.colors(checkedThumbColor = deepPink)
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(12.dp))
             Text(
-                text = if (isPublicMode) "Public Mode" else "Sensor Mode",
-                color = Color.White.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.labelMedium
+                text = if (isPublicMode) "PUBLIC MODE" else "SENSOR MODE",
+                color = pixelWhite.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.labelMedium // pixel font
             )
         }
 
@@ -118,54 +124,59 @@ fun LightSensorMinigame(
         ) {
             Text(
                 "THE SHADOWS PROTECT THE DATA",
-                color = Color.White,
-                style = MaterialTheme.typography.headlineSmall
+                color = pixelWhite,
+                style = MaterialTheme.typography.titleMedium, // Pixel font
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
             // switches the button types if needed
             if (isPublicMode) {
-                Text("Tap the sun to extinguish the light...", color = Color.Yellow.copy(alpha = 0.8f))
-                Spacer(Modifier.height(32.dp))
-                // the "sun" button
+                Text(
+                    "Tap the sun to extinguish the light...",
+                    color = softMatcha,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.height(48.dp))
+
+                // the "sun" button - converted to pixel style
                 IconButton(
                     onClick = { onFinished(true) },
-                    modifier = Modifier.size(80.dp).background(Color.Yellow, MaterialTheme.shapes.extraLarge)
+                    modifier = Modifier
+                        .size(100.dp)
+                        .background(softMatcha, CutCornerShape(12.dp))
+                        .border(4.dp, pixelWhite, CutCornerShape(12.dp))
                 ) {
-                    Text("☀️", style = MaterialTheme.typography.headlineLarge)
+                    Text("☀️", fontSize = 40.sp)
                 }
-            // normal sensor version
             } else {
-                Text("Cover your light sensor to encrypt...", color = Color.Gray)
-                Spacer(Modifier.height(32.dp))
+                Text(
+                    "Cover your light sensor to encrypt...",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.height(48.dp))
+
                 // visual feedback showing how close the user is to the dark threshold
                 CircularProgressIndicator(
                     progress = { (luxValue / 100f).coerceIn(0f, 1f) },
-                    color = Color.Yellow,
-                    trackColor = Color.DarkGray
+                    modifier = Modifier.size(80.dp),
+                    color = softMatcha,
+                    trackColor = Color.DarkGray,
+                    strokeWidth = 8.dp
                 )
             }
 
-            // bypass to allow for failure after 10 second timer
+            // bypass to allow for failure after timer
             if (showSkipButton) {
-                Spacer(Modifier.height(48.dp))
-                OutlinedButton(
+                Spacer(Modifier.height(64.dp))
+                PixelButton(
+                    text = "BYPASS SENSOR",
                     onClick = onContinueAnyway,
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f)
-                        .height(56.dp),
-                    shape = MaterialTheme.shapes.medium,
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Text(
-                        "BYPASS SENSOR",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.White
-                    )
-                }
+                    color = Color.Transparent,
+                    textColor = pixelWhite,
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                )
             }
         }
     }

@@ -5,30 +5,36 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.lovebyte.R
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.unit.sp
 
-// Set of Material typography styles to start with
+// import the pixel font we're using
+val PixelFont = FontFamily(
+    Font(R.font.dot_gothic, FontWeight.Normal)
+)
+
+
+// map the custom font to the typography
 val Typography = Typography(
+    // dialogue - keep this as default for readability
     bodyLarge = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-    /* Other default text styles to override
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
+        fontSize = 16.sp
     ),
-    labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+    // ui/headers : Pixel
+    headlineMedium = TextStyle(
+        fontFamily = PixelFont,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = PixelFont,
+        fontSize = 18.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = PixelFont,
+        fontWeight = FontWeight.Bold,
+        fontSize = 14.sp
     )
-    */
 )
