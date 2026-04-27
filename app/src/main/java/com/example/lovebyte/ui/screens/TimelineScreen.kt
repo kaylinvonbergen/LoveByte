@@ -1,11 +1,14 @@
 package com.example.lovebyte.ui.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -17,13 +20,13 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.Chapter
 import com.example.lovebyte.data.model.ProgrammingLanguage
-import com.example.lovebyte.ui.components.general.PixelButton
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -32,14 +35,16 @@ fun TimelineScreen(
     onChapterSelected: (Int) -> Unit,
     onBackPressed: () -> Unit
 ) {
-    val currentLang =
-        if (state.currentLanguage != ProgrammingLanguage.NONE) {
-            state.currentLanguage
-        } else {
-            ProgrammingLanguage.PYTHON
-        }
+    val currentLang = if (state.currentLanguage != ProgrammingLanguage.NONE) {
+        state.currentLanguage
+    } else {
+        ProgrammingLanguage.PYTHON
+    }
 
     val sections = currentLang.sections
+    // check for configuration
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     // set the cutiepie colors so we can use them later
     val sakuraPink = Color(0xFFFFB7C5)
@@ -50,17 +55,15 @@ fun TimelineScreen(
 
     Scaffold(
         containerColor = Color(0xFFFFF5F7),
-        // top bar to allow a back button
         topBar = {
             Surface(
                 modifier = Modifier
                     .statusBarsPadding()
                     .fillMaxWidth()
-                    .height(64.dp)
+                    .height(if (isLandscape) 48.dp else 64.dp) // Slimmer top bar for landscape
                     .drawBehind {
                         val strokeWidth = 3.dp.toPx()
                         val y = size.height - strokeWidth / 2
-                        // outline them with the offset to give a more pixelized feel
                         drawLine(
                             color = deepPink,
                             start = Offset(0f, y),
@@ -83,7 +86,7 @@ fun TimelineScreen(
                     }
                     Text(
                         text = "TIMELINE",
-                        style = MaterialTheme.typography.titleMedium, // Pixel Font
+                        style = MaterialTheme.typography.titleMedium,
                         color = deepPink
                     )
                 }
@@ -101,22 +104,29 @@ fun TimelineScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawBehind {
-                    val strokeWidth = 2.dp.toPx()
-                    val y = size.height - strokeWidth / 2
-                    drawLine(
-                        color = deepPink.copy(alpha = 0.3f),
-                        start = Offset(0f, y),
-                        end = Offset(size.width, y),
-                        strokeWidth = strokeWidth
-                    )
-                }
+                        val strokeWidth = 2.dp.toPx()
+                        val y = size.height - strokeWidth / 2
+                        drawLine(
+                            color = deepPink.copy(alpha = 0.3f),
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = strokeWidth
+                        )
+                    }
             ) {
-                Column(Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                if (isLandscape) {
+                    // LANDSCAPE HEADER: scrollable Row to save vertical space
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Surface(
                             modifier = Modifier
-                                .size(56.dp)
-                                .border(3.dp, deepPink, pixelRoundedShape),
+                                .size(40.dp)
+                                .border(2.dp, deepPink, pixelRoundedShape),
                             shape = pixelRoundedShape,
                             color = pixelWhite
                         ) {
@@ -124,36 +134,86 @@ fun TimelineScreen(
                                 Text(
                                     text = currentLang.displayName.take(1),
                                     color = deepPink,
-                                    style = MaterialTheme.typography.headlineMedium // Pixel Font
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                             }
                         }
-                        Spacer(Modifier.width(16.dp))
+
+                        Spacer(Modifier.width(12.dp))
+
                         Text(
                             text = currentLang.displayName,
-                            style = MaterialTheme.typography.headlineMedium, // Pixel Font
+                            style = MaterialTheme.typography.titleMedium,
                             color = inkBrown
                         )
+
+                        Spacer(Modifier.width(24.dp))
+
+                        Column {
+                            Text(
+                                text = "Progress: ${state.progressPercentage}%",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = deepPink
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            LinearProgressIndicator(
+                                progress = { state.progressFraction },
+                                modifier = Modifier
+                                    .width(150.dp)
+                                    .height(8.dp)
+                                    .border(1.dp, deepPink),
+                                color = deepPink,
+                                trackColor = pixelWhite,
+                                strokeCap = StrokeCap.Butt
+                            )
+                        }
                     }
+                } else {
+                    // PORTRAIT HEADER: keep original vertical layout
+                    Column(Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .border(3.dp, deepPink, pixelRoundedShape),
+                                shape = pixelRoundedShape,
+                                color = pixelWhite
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = currentLang.displayName.take(1),
+                                        color = deepPink,
+                                        style = MaterialTheme.typography.headlineMedium
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Text(
+                                text = currentLang.displayName,
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = inkBrown
+                            )
+                        }
 
-                    Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(16.dp))
 
-                    Text(
-                        text = "Total Progress: ${state.progressPercentage}%",
-                        style = MaterialTheme.typography.labelLarge, // Pixel Font
-                        color = deepPink
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = { state.progressFraction },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp)
-                            .border(2.dp, deepPink),
-                        color = deepPink,
-                        trackColor = pixelWhite,
-                        strokeCap = StrokeCap.Butt // pixel-style sharp ends
-                    )
+                        Text(
+                            text = "Total Progress: ${state.progressPercentage}%",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = deepPink
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        LinearProgressIndicator(
+                            progress = { state.progressFraction },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(12.dp)
+                                .border(2.dp, deepPink),
+                            color = deepPink,
+                            trackColor = pixelWhite,
+                            strokeCap = StrokeCap.Butt
+                        )
+                    }
                 }
             }
 
@@ -171,14 +231,13 @@ fun TimelineScreen(
                         ) {
                             Text(
                                 text = section.title.uppercase(),
-                                style = MaterialTheme.typography.labelLarge, // Pixel Font
+                                style = MaterialTheme.typography.labelLarge,
                                 modifier = Modifier.padding(vertical = 8.dp),
-                                color = Color(0xFFB19CD9) // Lavender for retro game section vibes
+                                color = Color(0xFFB19CD9)
                             )
                         }
                     }
 
-                    // the chapters
                     items(section.chapters) { chapter ->
                         val currentProgress = state.progressMap[currentLang] ?: 1
                         val isCompleted = chapter.id < currentProgress
@@ -239,9 +298,7 @@ fun ChapterCard(
                 color = if (isUnlocked) deepPink else Color.Gray
             )
 
-
             Spacer(Modifier.width(16.dp))
-
 
             Column {
                 Text(
