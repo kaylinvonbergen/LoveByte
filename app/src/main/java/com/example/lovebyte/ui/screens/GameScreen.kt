@@ -223,7 +223,8 @@ fun GameScreen(
                             PixelButton(
                                 text = choice.choiceText,
                                 onClick = { onChoiceSelected(choice) },
-                                color = Color(0xFFB19CD9) // Soft Lavender for choices
+                                color = Color(0xFFB19CD9), // Soft Lavender for choices
+                                modifier = Modifier.fillMaxWidth(  1f)
                             )
                         }
                     }

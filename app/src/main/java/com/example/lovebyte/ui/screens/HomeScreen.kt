@@ -258,13 +258,16 @@ fun HomeScreen(
                 PixelButton(
                     onClick = onContinueClicked,
                     text = if (state.currentLanguage != ProgrammingLanguage.NONE) "CONTINUE" else "START",
-                    color = deepPink
+                    color = deepPink,
+                    modifier = Modifier.fillMaxWidth(0.8f)
+
                 )
 
                 PixelButton(
                     onClick = onSwapClicked,
                     text = "SWAP ROUTES",
-                    color = Color(0xFFB19CD9)
+                    color = Color(0xFFB19CD9),
+                    modifier = Modifier.fillMaxWidth(0.8f)
                 )
             }
         }
