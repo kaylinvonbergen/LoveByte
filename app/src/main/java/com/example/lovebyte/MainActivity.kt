@@ -25,9 +25,46 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
+    private val permissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            val locationGranted =
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+
+            val activityGranted =
+                permissions[Manifest.permission.ACTIVITY_RECOGNITION] == true
+
+            // Optional:
+            // if (!locationGranted) viewModel.setLocationDenied()
+        }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val permissionsToRequest = mutableListOf<String>()
+
+        if (
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        if (
+            android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q &&
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            permissionLauncher.launch(permissionsToRequest.toTypedArray())
+        }
         setContent {
 
             LoveByteTheme {
@@ -103,6 +140,9 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate("chapter/$currentLang/$chapterId/true")
                                     }
                                 },
+//                                onStartAtChapter = { chapterId ->
+//                                    viewModel.loadChapter(state.currentLanguage, chapterId)
+//                                },
                                 onSwapClicked = {
                                     navController.navigate("charselect")
                                 },

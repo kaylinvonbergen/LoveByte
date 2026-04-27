@@ -100,7 +100,8 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     // Starts a chapter by setting the current language, progress, and first dialogue node.
     fun loadChapter(language: ProgrammingLanguage, chapterId: Int) {
         val updatedProgressMap = _state.value.progressMap.toMutableMap()
-        updatedProgressMap[language] = chapterId
+        val currentSavedProgress = updatedProgressMap[language] ?: 1
+        updatedProgressMap[language] = maxOf(currentSavedProgress, chapterId)
 
         val startNode = (chapterId * 100) + 1
 
@@ -125,7 +126,8 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         if (currentLanguage == ProgrammingLanguage.NONE) return
 
         val updatedProgressMap = currentState.progressMap.toMutableMap()
-        updatedProgressMap[currentLanguage] = chapterId
+        val currentSavedProgress = updatedProgressMap[currentLanguage] ?: 1
+        updatedProgressMap[currentLanguage] = maxOf(currentSavedProgress, chapterId)
 
         _state.value = currentState.copy(
             progressMap = updatedProgressMap,
@@ -319,7 +321,8 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch {
             val savedProgress = progressRepository.getProgressForLanguageOnce(language.name)
             val updatedProgressMap = _state.value.progressMap.toMutableMap().apply {
-                put(language, chapterId)
+                val currentSavedProgress = this[language] ?: 1
+                put(language, maxOf(currentSavedProgress, chapterId))
             }
 
             val chapterPrefix = chapterId.toString()
