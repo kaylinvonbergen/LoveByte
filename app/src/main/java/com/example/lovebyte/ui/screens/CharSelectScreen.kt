@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.data.model.LoveByteState
@@ -301,15 +302,21 @@ private fun FooterButtons(
     Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         PixelButton(
             text = "INFO",
+            modifier = Modifier
+                .weight(1f)
+                .testTag("info_button"),
             onClick = onInfoClick,
             color = Color(0xFFB19CD9),
-            modifier = Modifier.weight(1f)
+
         )
         PixelButton(
             text = "SELECT",
+            modifier = Modifier
+                .weight(1f)
+                .testTag("select_button"),
             onClick = onSelectClick,
             color = deepPink,
-            modifier = Modifier.weight(1f)
+
         )
     }
 }

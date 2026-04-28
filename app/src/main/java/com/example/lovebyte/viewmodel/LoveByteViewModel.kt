@@ -1,4 +1,5 @@
 package com.example.lovebyte.viewmodel
+
 //Holds app state and exposes functions the UI can call, like onNextLineClicked().
 import com.example.lovebyte.data.model.DialogueChoice
 import com.example.lovebyte.data.model.LoveByteState
@@ -440,6 +441,7 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 val weatherInfo = weather.weather.firstOrNull()
 
                 val adjective = if (weatherInfo != null) {
+                    // Call the companion object method to remain testable
                     mapWeatherToAdjective(weatherInfo.main, weatherInfo.description)
                 } else {
                     ""
@@ -466,26 +468,29 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // Converts raw weather API text into a simpler adjective for the UI.
-    fun mapWeatherToAdjective(main: String, description: String): String {
-        val desc = description.lowercase()
-        val mainLower = main.lowercase()
+    companion object {
+        // Converts raw weather API text into a simpler adjective for the UI.
+        // Moved to companion object to allow for pure unit testing without an Application context.
+        fun mapWeatherToAdjective(main: String, description: String): String {
+            val desc = description.lowercase()
+            val mainLower = main.lowercase()
 
-        return when {
-            "clear" in mainLower -> "sunny"
-            "cloud" in mainLower -> "cloudy"
-            "rain" in mainLower -> when {
-                "light" in desc -> "lightly rainy"
-                "heavy" in desc -> "heavily rainy"
-                else -> "rainy"
+            return when {
+                "clear" in mainLower -> "sunny"
+                "cloud" in mainLower -> "cloudy"
+                "rain" in mainLower -> when {
+                    "light" in desc -> "lightly rainy"
+                    "heavy" in desc -> "heavily rainy"
+                    else -> "rainy"
+                }
+                "drizzle" in mainLower -> "drizzling"
+                "thunderstorm" in mainLower -> "stormy"
+                "snow" in mainLower -> "snowy"
+                "mist" in mainLower ||
+                        "fog" in mainLower ||
+                        "haze" in mainLower -> "foggy"
+                else -> description.lowercase()
             }
-            "drizzle" in mainLower -> "drizzling"
-            "thunderstorm" in mainLower -> "stormy"
-            "snow" in mainLower -> "snowy"
-            "mist" in mainLower ||
-                    "fog" in mainLower ||
-                    "haze" in mainLower -> "foggy"
-            else -> description.lowercase()
         }
     }
 }
