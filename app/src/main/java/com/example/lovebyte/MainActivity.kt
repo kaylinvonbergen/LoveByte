@@ -243,8 +243,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onNextChapter = {
-                                    val nextCh = state.currentChapter
-                                    val languageName = state.currentLanguage.name
+                                    val nextCh = chapterId + 1
+                                    val languageName = selectedLang.name
 
                                     navController.navigate("chapter/$languageName/$nextCh/false")
                                 },
