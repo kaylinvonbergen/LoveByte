@@ -16,6 +16,61 @@
     - Light sensor game created
     - Each game has a "public" (playable in situations where dynamic movement is difficult) mode
     - Each game is now failable
+
+## 📁 Project Structure
+app/
+└── src/main/java/com/example/lovebyte/
+    ├── data/
+    │   ├── content/
+    │   │   └── NarrativeData.kt
+    │   ├── local/
+    │   │   ├── AppDatabase.kt
+    │   │   ├── DatabaseProvider.kt
+    │   │   ├── UserProgress.kt
+    │   │   └── UserProgressDao.kt
+    │   ├── location/
+    │   │   └── location utilities
+    │   └── model/
+    │       ├── NarrativeModels.kt
+    │       ├── GameState.kt
+    │       ├── EfficiencyMinigameModels.kt
+    │       └── SyntaxMinigameModels.kt
+    ├── network/
+    │   └── API + networking layer
+    ├── repository/
+    │   ├── GameRepository.kt
+    │   ├── ProgressRepository.kt
+    │   └── WeatherRepository.kt
+    ├── ui/
+    │   ├── components/
+    │   │   └── reusable UI + minigames
+    │   ├── screens/
+    │   │   ├── HomeScreen.kt
+    │   │   ├── GameScreen.kt
+    │   │   ├── CharSelectScreen.kt
+    │   │   └── TimelineScreen.kt
+    │   └── theme/
+    │       ├── Color.kt
+    │       ├── Theme.kt
+    │       └── Type.kt
+    └── viewmodel/
+        └── LoveByteViewModel.kt
+
+### 🧠 Architecture Overview
+
+- **data/** → Models, local database, and narrative content  
+- **repository/** → Handles data flow between UI and data sources  
+- **network/** → External API calls  
+- **ui/** → All Compose UI screens, components, and theming  
+- **viewmodel/** → State management and business logic  
+
+### 🏗️ Design Pattern
+
+This project follows an **MVVM architecture**:
+
+- **View** → Compose screens in `ui/screens`
+- **ViewModel** → `LoveByteViewModel`
+- **Model/Data** → `data/` and `repository/`
  
 ## Testing 
 We currently have a dual-layer testing strategy, with unit testing (with Mockito Kotlin!) for business logic and Compose UI tests for the UI/UX. 
@@ -40,8 +95,7 @@ We used the **Android Compose Test Library** to verify the integrity of the user
 | **JUnit 4** | Primary framework for local unit tests. |
 | **Mockito** | Used for mocking `Application` and `SharedPreferences` dependencies. |
 | **Compose UI Test** | Used for interacting with the Semantics Tree in Jetpack Compose. |
-| **Android Studio Debugger** | Utilized with breakpoints to trace state transitions in the `LoveByteViewModel`. |
- 
+| **Android Studio Debugger** | Utilized with breakpoints to trace state transitions in the `LoveByteViewModel`. | 
 
 ## TODOs for next time 
 - [ ] Polish sentiment
@@ -57,6 +111,9 @@ We used the **Android Compose Test Library** to verify the integrity of the user
 
 ### Anna's portion 
 Google Gemini was used to assist in "cute-ifying" the app's UI, providing advice on how to acheive a more pixelated look without departing from modern design standards (beveled edges instead of manually creating pixels, etc.). Additionally, it was used to figure out what preliminary testing should look like, as well as resolving issues involving mocking data for unit tests. Most notably, when the AI's initial testing suggestions conflicted with the app's singleton database structure, I manually refactored core logic into Companion Objects to ensure the code was testable in a local JVM environment. Additionally, it helped format this README :] 
+
+### Kaylin's portion 
+AI tools (ChatGPT) were used tor refine features like sentiment tracking, onboarding flow, and UI improvements, as well as find likely sources of bugs and think through edge cases in state management (like preventing progress from going backward and handling navigation correctly). I also used AI for guidance on structuring Jetpack Compose components and for generating small example snippets to clarify implementation details. All core logic, design decisions, and final code were integrated and understood by me, and any AI suggestions were reviewed and adapted to fit the project’s specific goals and structure.
 
 
 # LoveByte Checkpoint 4/7/26
