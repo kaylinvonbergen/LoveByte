@@ -18,6 +18,7 @@
     - Each game is now failable
 
 ## 📁 Project Structure
+```text
 app/
 └── src/main/java/com/example/lovebyte/
     ├── data/
@@ -55,6 +56,7 @@ app/
     │       └── Type.kt
     └── viewmodel/
         └── LoveByteViewModel.kt
+```
 
 ### 🧠 Architecture Overview
 
