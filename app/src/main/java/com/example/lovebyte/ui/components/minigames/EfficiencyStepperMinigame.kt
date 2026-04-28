@@ -40,6 +40,7 @@ fun EfficiencyStepper(
 
     // color palette
     val softMatcha = Color(0xFFB2F2BB)
+    val darkMatcha = Color(0xFF819289)
     val deepPink = Color(0xFFFF85A1)
     val inkBrown = Color(0xFF5D4037)
     val pixelWhite = Color(0xFFFFFFFF)
@@ -180,7 +181,7 @@ fun EfficiencyStepper(
                 Text(
                     text = "${timeLeft}s",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = if (timeLeft < 10) Color.Red else softMatcha
+                    color = if (timeLeft < 10) Color.Red else darkMatcha
                 )
             }
         }
