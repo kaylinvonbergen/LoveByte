@@ -1,10 +1,6 @@
 package com.example.lovebyte.ui.screens
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.content.res.Configuration
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -13,7 +9,7 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,10 +18,12 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.ProgrammingLanguage
 import com.example.lovebyte.ui.components.general.PixelButton
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 @Composable
 fun HomeScreen(
@@ -35,6 +33,7 @@ fun HomeScreen(
     onLocationPermissionGranted: (android.content.Context) -> Unit,
     onLocationPermissionDenied: () -> Unit,
     onOnboardingNext: () -> Unit,
+    onOnboardingPlacementComplete: (pythonLevel: Int, kotlinLevel: Int) -> Unit,
     onOnboardingFinish: () -> Unit,
 ) {
     val heroLanguage = if (state.currentLanguage != ProgrammingLanguage.NONE) {
@@ -53,27 +52,8 @@ fun HomeScreen(
     val pixelWhite = Color(0xFFFFFFFF)
     val pixelRoundedShape = CutCornerShape(8.dp)
 
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) {
-            onLocationPermissionGranted(context)
-        } else {
-            onLocationPermissionDenied()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        } else {
-            onLocationPermissionGranted(context)
-        }
-    }
+    var pythonLevel by remember { mutableIntStateOf(1) }
+    var kotlinLevel by remember { mutableIntStateOf(1) }
 
     // Onboarding Dialogs
     if (state.shouldShowOnboarding && state.onboardingStep == 1) {
@@ -97,6 +77,89 @@ fun HomeScreen(
     }
 
     if (state.shouldShowOnboarding && state.onboardingStep == 2) {
+        AlertDialog(
+            onDismissRequest = { },
+            shape = pixelRoundedShape,
+            containerColor = pixelWhite,
+            modifier = Modifier.border(4.dp, deepPink, pixelRoundedShape),
+            title = {
+                Text(
+                    "Choose Your Starting Point",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = deepPink
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        "Rank your current proficiency for each language from 1 to 3.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = inkBrown
+                    )
+
+                    ProficiencyRow(
+                        languageName = "Python",
+                        selectedLevel = pythonLevel,
+                        onLevelSelected = { pythonLevel = it },
+                        inkBrown = inkBrown,
+                        deepPink = deepPink
+                    )
+
+                    ProficiencyRow(
+                        languageName = "Kotlin",
+                        selectedLevel = kotlinLevel,
+                        onLevelSelected = { kotlinLevel = it },
+                        inkBrown = inkBrown,
+                        deepPink = deepPink
+                    )
+                }
+            },
+            confirmButton = {
+                PixelButton(
+                    onClick = {
+                        onOnboardingPlacementComplete(pythonLevel, kotlinLevel)
+                    },
+                    text = "Next",
+                    color = deepPink
+                )
+            }
+        )
+    }
+
+    if (state.shouldShowOnboarding && state.onboardingStep == 3) {
+        val pythonStartChapter = state.progressMap[ProgrammingLanguage.PYTHON] ?: 1
+        val kotlinStartChapter = state.progressMap[ProgrammingLanguage.KOTLIN] ?: 1
+
+        AlertDialog(
+            onDismissRequest = { },
+            shape = pixelRoundedShape,
+            containerColor = pixelWhite,
+            modifier = Modifier.border(4.dp, deepPink, pixelRoundedShape),
+            title = {
+                Text(
+                    "Starting Placement",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = deepPink
+                )
+            },
+            text = {
+                Text(
+                    "You have been placed at Chapter $pythonStartChapter for Python and Chapter $kotlinStartChapter for Kotlin.\n\nFeel free to go back and complete earlier chapters anyway!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = inkBrown
+                )
+            },
+            confirmButton = {
+                PixelButton(
+                    onClick = onOnboardingNext,
+                    text = "Next",
+                    color = deepPink
+                )
+            }
+        )
+    }
+
+    if (state.shouldShowOnboarding && state.onboardingStep == 4) {
         AlertDialog(
             onDismissRequest = { },
             shape = pixelRoundedShape,
@@ -340,5 +403,41 @@ private fun ActionButtons(
             color = Color(0xFFB19CD9),
             modifier = Modifier.fillMaxWidth(buttonWidth)
         )
+    }
+}
+
+@Composable
+private fun ProficiencyRow(
+    languageName: String,
+    selectedLevel: Int,
+    onLevelSelected: (Int) -> Unit,
+    inkBrown: Color,
+    deepPink: Color
+) {
+    Column {
+        Text(
+            text = languageName,
+            style = MaterialTheme.typography.labelLarge,
+            color = deepPink
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            listOf(1, 2, 3).forEach { level ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(
+                        selected = selectedLevel == level,
+                        onClick = { onLevelSelected(level) }
+                    )
+                    Text(
+                        text = level.toString(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = inkBrown
+                    )
+                }
+            }
+        }
     }
 }

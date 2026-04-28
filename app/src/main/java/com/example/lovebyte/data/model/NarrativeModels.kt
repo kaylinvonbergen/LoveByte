@@ -30,5 +30,14 @@ data class DialogueNode(
 
 data class DialogueChoice(
     val choiceText: String,
-    val targetNodeId: Int
+    val targetNodeId: Int,
+    val lovePoints: Int = 0,
+    val friendPoints: Int = 0,
+    val hatePoints: Int = 0
+)
+
+data class SentimentScore(
+    val love: Int = 0,
+    val friend: Int = 0,
+    val hate: Int = 0
 )

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.ProgrammingLanguage
+import com.example.lovebyte.data.model.SentimentScore
 import kotlinx.coroutines.launch
 import com.example.lovebyte.ui.components.general.PixelButton
 
@@ -134,6 +135,7 @@ fun CharSelectScreen(
     // 4. info popup (AlertDialog stays same)
     if (showInfoPopup) {
         val currentLang = languages[pagerState.currentPage]
+        val sentiment = state.sentimentMap[currentLang] ?: SentimentScore()
         AlertDialog(
             onDismissRequest = { showInfoPopup = false },
             shape = pixelRoundedShape,
@@ -143,7 +145,19 @@ fun CharSelectScreen(
                 Text(text = currentLang.displayName.uppercase(), style = MaterialTheme.typography.titleMedium, color = deepPink)
             },
             text = {
-                Text(text = currentLang.description, style = MaterialTheme.typography.bodyLarge, color = inkBrown)
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        text = currentLang.description,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = inkBrown
+                    )
+
+                    Spacer(Modifier.height(4.dp))
+
+                    SentimentBar("LOVE", sentiment.love, deepPink, inkBrown)
+                    SentimentBar("FRIEND", sentiment.friend, Color(0xFFB19CD9), inkBrown)
+                    SentimentBar("HATE", sentiment.hate, MaterialTheme.colorScheme.error, inkBrown)
+                }
             },
             confirmButton = {
                 TextButton(onClick = { showInfoPopup = false }) {
@@ -296,6 +310,40 @@ private fun FooterButtons(
             onClick = onSelectClick,
             color = deepPink,
             modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun SentimentBar(
+    label: String,
+    value: Int,
+    color: Color,
+    textColor: Color
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = textColor
+            )
+
+            Text(
+                text = "$value / 50",
+                style = MaterialTheme.typography.labelLarge,
+                color = textColor
+            )
+        }
+
+        LinearProgressIndicator(
+            progress = { value.coerceIn(0, 50) / 50f },
+            modifier = Modifier.fillMaxWidth(),
+            color = color,
+            trackColor = color.copy(alpha = 0.2f)
         )
     }
 }

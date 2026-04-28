@@ -77,6 +77,10 @@ data class LoveByteState(
         ProgrammingLanguage.PYTHON to 1,
         ProgrammingLanguage.KOTLIN to 1
     ),
+    val sentimentMap: Map<ProgrammingLanguage, SentimentScore> = mapOf(
+        ProgrammingLanguage.PYTHON to SentimentScore(),
+        ProgrammingLanguage.KOTLIN to SentimentScore()
+    ),
 
     val dialogueIndex: Int = 0,
 
@@ -93,6 +97,7 @@ data class LoveByteState(
 
     val shouldShowOnboarding: Boolean = false,
     val onboardingStep: Int = 0
+
 ) {
     val currentChapter: Int
         get() = progressMap[currentLanguage] ?: 1

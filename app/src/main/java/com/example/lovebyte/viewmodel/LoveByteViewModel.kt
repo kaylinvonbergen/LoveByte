@@ -26,6 +26,7 @@ import com.example.lovebyte.data.location.LocationHelper
 
 
 import android.util.Log
+import com.example.lovebyte.data.model.SentimentScore
 
 class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -295,11 +296,26 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
     // Handles a dialogue choice by moving to that choice's target node.
     fun handleChoiceSelected(choice: DialogueChoice) {
-        val currentLangName = _state.value.currentLanguage.name.uppercase()
+        val currentState = _state.value
+        val currentLang = currentState.currentLanguage
+
+        val currentScore = currentState.sentimentMap[currentLang] ?: SentimentScore()
+
+        val updatedScore = currentScore.copy( // max and min 50 and 0, respectively
+            love = (currentScore.love + choice.lovePoints).coerceIn(0, 50),
+            friend = (currentScore.friend + choice.friendPoints).coerceIn(0, 50),
+            hate = (currentScore.hate + choice.hatePoints).coerceIn(0, 50)
+        )
+
+        val updatedSentimentMap = currentState.sentimentMap.toMutableMap()
+        updatedSentimentMap[currentLang] = updatedScore
+
+        val currentLangName = currentLang.name.uppercase()
         val nodesForLanguage = allNarrativeContent[currentLangName] ?: emptyMap()
         val nextNode = nodesForLanguage[choice.targetNodeId]
 
-        _state.value = _state.value.copy(
+        _state.value = currentState.copy(
+            sentimentMap = updatedSentimentMap,
             dialogueIndex = choice.targetNodeId,
             isMiniGameActive = nextNode?.triggerEvent != null,
             errorMessage = null
@@ -345,6 +361,39 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 isPaused = false,
                 isChapterComplete = false,
                 errorMessage = null
+            )
+        }
+    }
+
+    fun applyOnboardingPlacement(pythonLevel: Int, kotlinLevel: Int) {
+        val pythonStartingChapter = pythonLevel.coerceIn(1, 3)
+        val kotlinStartingChapter = kotlinLevel.coerceIn(1, 3)
+
+        val updatedProgressMap = _state.value.progressMap.toMutableMap()
+        updatedProgressMap[ProgrammingLanguage.PYTHON] = pythonStartingChapter
+        updatedProgressMap[ProgrammingLanguage.KOTLIN] = kotlinStartingChapter
+
+        _state.value = _state.value.copy(
+            progressMap = updatedProgressMap,
+            currentLanguage = ProgrammingLanguage.PYTHON,
+            onboardingStep = 3
+        )
+
+        viewModelScope.launch {
+            progressRepository.saveProgress(
+                UserProgress(
+                    language = ProgrammingLanguage.PYTHON.name,
+                    chapterId = pythonStartingChapter,
+                    dialogueIndex = pythonStartingChapter * 100 + 1
+                )
+            )
+
+            progressRepository.saveProgress(
+                UserProgress(
+                    language = ProgrammingLanguage.KOTLIN.name,
+                    chapterId = kotlinStartingChapter,
+                    dialogueIndex = kotlinStartingChapter * 100 + 1
+                )
             )
         }
     }

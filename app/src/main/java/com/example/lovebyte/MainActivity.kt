@@ -75,32 +75,6 @@ class MainActivity : ComponentActivity() {
                 val viewModel: LoveByteViewModel = viewModel()
                 val state = viewModel.state.collectAsState().value
 
-                val activity = this
-
-                var hasActivityRecognitionPermission by remember {
-                    mutableStateOf(
-                        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
-                                ContextCompat.checkSelfPermission(
-                                    activity,
-                                    Manifest.permission.ACTIVITY_RECOGNITION
-                                ) == PackageManager.PERMISSION_GRANTED
-                    )
-                }
-
-                val activityRecognitionLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestPermission()
-                ) { isGranted ->
-                    hasActivityRecognitionPermission = isGranted
-                }
-
-                LaunchedEffect(Unit) {
-                    if (
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-                        !hasActivityRecognitionPermission
-                    ) {
-                        activityRecognitionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
-                    }
-                }
 
                 // wrap everything in a Scaffold so we can potentially add a TopBar or BottomBar later
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -154,6 +128,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onOnboardingNext = {
                                     viewModel.nextOnboardingStep()
+                                },
+                                onOnboardingPlacementComplete = { pythonLevel, kotlinLevel ->
+                                    viewModel.applyOnboardingPlacement(pythonLevel, kotlinLevel)
                                 },
                                 onOnboardingFinish = {
                                     viewModel.finishOnboarding()
@@ -281,22 +258,6 @@ fun SplashScreen(state: LoveByteState, onTimeout: () -> Unit) {
     }
 }
 
-@Composable
-fun tempCharSelectScreen(onCharacterSelected: (String) -> Unit) {
-    Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
-        Text("Select a Character", style = MaterialTheme.typography.headlineLarge)
-        Button(onClick = { onCharacterSelected("PYTHON") }) { Text("Python-kun") }
-        Button(onClick = { onCharacterSelected("KOTLIN") }) { Text("Kotlin-chan") }
-    }
-}
-
-@Composable
-fun tempTimelineScreen(language: String, onChapterSelected: (Int) -> Unit) {
-    Column {
-        Text("Chapters for $language")
-        Button(onClick = { onChapterSelected(1) }) { Text("Chapter 1") }
-    }
-}
 
 @Composable
 fun SettingsScreen(state: LoveByteState) {

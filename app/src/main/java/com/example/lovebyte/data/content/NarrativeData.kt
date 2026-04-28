@@ -40,8 +40,16 @@ private val pythonNodes = mapOf(
         speaker = "System",
         text = "He offers you a cup of jasmine tea. How do you respond?",
         choices = listOf(
-            DialogueChoice("Thanks! Honestly, I'm used to Java's boilerplate.", 103),
-            DialogueChoice("I agree. Braces are for teeth, not logic flow.", 104)
+            DialogueChoice(
+                "Thanks! Honestly, I'm used to Java's boilerplate.",
+                103,
+                friendPoints = 1
+            ),
+            DialogueChoice(
+                "I agree. Braces are for teeth, not logic flow.",
+                104,
+                lovePoints = 2
+            )
         )
     ),
     103 to DialogueNode(
@@ -70,8 +78,17 @@ private val pythonNodes = mapOf(
         speaker = "System",
         text = "He gestures to a holographic display buzzing with scattered brackets and stray symbols.",
         choices = listOf(
-            DialogueChoice("I'm a pro at cleanup. Let's do it!", 107),
-            DialogueChoice("Wait, is this a test?", 108)
+            DialogueChoice(
+                "I'm a pro at cleanup. Let's do it!",
+                107,
+                lovePoints = 1,
+                friendPoints = 1
+            ),
+            DialogueChoice(
+                "Wait, is this a test?",
+                108,
+                friendPoints = -1
+            )
         )
     ),
     107 to DialogueNode(
@@ -101,8 +118,17 @@ private val pythonNodes = mapOf(
         text = "Ah, almost! A few of those blocks are a bit... out of place. Want to try one more time?",
         emotion = "Pensive",
         choices = listOf(
-            DialogueChoice("Let me try again!", 107),
-            DialogueChoice("I'm more of a 'chaotic' coder.", 111)
+            DialogueChoice(
+                "Let me try again!",
+                107,
+                friendPoints = 1
+            ),
+            DialogueChoice(
+                "I'm more of a 'chaotic' coder.",
+                111,
+                hatePoints = 1,
+                friendPoints = -1
+            )
         )
     ),
     111 to DialogueNode(
@@ -147,8 +173,16 @@ private val pythonNodes = mapOf(
         speaker = "System",
         text = "He points toward a glowing path through the greenhouse floor.",
         choices = listOf(
-            DialogueChoice("Got it. I'll count carefully.", 206),
-            DialogueChoice("This feels suspiciously like exercise.", 207)
+            DialogueChoice(
+                "Got it. I'll count carefully.",
+                206,
+                lovePoints = 1
+            ),
+            DialogueChoice(
+                "This feels suspiciously like exercise.",
+                207,
+                friendPoints = -1
+            )
         )
     ),
     206 to DialogueNode(
@@ -178,8 +212,16 @@ private val pythonNodes = mapOf(
         text = "Hmm... not quite. Either you took too many steps or not enough. Want to give the loop another look?",
         emotion = "Pensive",
         choices = listOf(
-            DialogueChoice("Let me try again.", 206),
-            DialogueChoice("Loops are harder when they involve cardio.", 210)
+            DialogueChoice(
+                "Let me try again.",
+                206,
+                friendPoints = 1
+            ),
+            DialogueChoice(
+                "Loops are harder when they involve cardio.",
+                210,
+                friendPoints = -1
+            )
         )
     ),
     210 to DialogueNode(
@@ -219,8 +261,16 @@ private val pythonNodes = mapOf(
         speaker = "System",
         text = "He points to a line of code in the holographic display: 'API_KEY = \"sk-123456789\"'. It’s glowing a dangerous, bright red.",
         choices = listOf(
-            DialogueChoice("Wait, isn't that a security risk?", 303),
-            DialogueChoice("Is that how you connect to the sensors?", 304)
+            DialogueChoice(
+                "Wait, isn't that a security risk?",
+                303,
+                lovePoints = 2
+            ),
+            DialogueChoice(
+                "Is that how you connect to the sensors?",
+                304,
+                friendPoints = 1
+            )
         )
     ),
     303 to DialogueNode(
@@ -259,8 +309,16 @@ private val pythonNodes = mapOf(
         text = "The light hit it! That key is compromised now. In the real world, we'd have to revoke that credential immediately. What's the plan for the next attempt?",
         emotion = "Pensive",
         choices = listOf(
-            DialogueChoice("Let's try the shadow move again.", 305),
-            DialogueChoice("I'll just use a .env file next time.", 308)
+            DialogueChoice(
+                "Let's try the shadow move again.",
+                305,
+                friendPoints = 1
+            ),
+            DialogueChoice(
+                "I'll just use a .env file next time.",
+                308,
+                lovePoints = 2
+            )
         )
     ),
     // Technical Knowledge Reward (Bypasses Minigame)
