@@ -1,3 +1,33 @@
+# LoveByte Checkpoint 4/28/26
+
+## Newest Accomplishments this Update
+- **"Cuter" UI**
+    - Adjusted colorscheme to be more in-line with traditional dating sims
+    - Included use of pixel font in buttons and headers
+    - Added bevels/steps to assets to give a more pixelated look
+- **Landscape Adaptability/Responsiveness**
+    - Main screens (Home, Character Select, Timeline) all support landscape mode
+    - Plans to lock orientation for game modes
+- **Character Sentiment** 
+    - Dialogues contribute to "Friend", "Love", or "Hate" routes
+    - Will eventually lead to associated endings
+- **Further Minigame Development**
+    - Pedometer game created
+    - Light sensor game created
+    - Each game has a "public" (playable in situations where dynamic movement is difficult) mode
+    - Each game is now failable 
+
+## TODOs for next time 
+- [ ] Polish sentiment
+- [ ] Create endings for each "route" for Python
+- [ ] 
+
+## Stretch Goals 
+- [ ] Custom sprites for Python
+- [ ] Kotlin storyline and games
+- [ ] Game Audio
+
+
 # LoveByte Checkpoint 4/7/26
 
 ## WHAT WE CAN SHOW OFF
@@ -13,7 +43,7 @@
 - narrative & minigame main loop completed
 
 
-## Major TODOs for next time 
+## TODOs for next time 
 - [x] "Cute-ify" the UI, it's currently functional, but not pretty
 - [x] Polish UX, quality of life updates to navigation
 - [ ] Work on game content
