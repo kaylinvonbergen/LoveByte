@@ -15,17 +15,48 @@
     - Pedometer game created
     - Light sensor game created
     - Each game has a "public" (playable in situations where dynamic movement is difficult) mode
-    - Each game is now failable 
+    - Each game is now failable
+ 
+## Testing 
+We currently have a dual-layer testing strategy, with unit testing (with Mockito Kotlin!) for business logic and Compose UI tests for the UI/UX. 
+
+### Local Unit Testing
+We utilized unit tests to validate the "brain" of the application in isolation. 
+
+* **Stateless Logic:** To improve testability, we refactored some of our data transformations (like Weather API mapping and Sentiment calculation) into **Companion Objects**. This decoupled our business logic from the Android Framework, allowing tests to run without an emulator! Trying to test without Companion Objects proved incredibility complicated, and decoupling was best practice, anyway. 
+* **Key Test Cases:**
+    * `mapWeatherToAdjective`: Verifies that raw strings from the OpenWeather API (e.g., "Thunderstorm") are correctly translated into user-friendly adjectives ("stormy").
+    * `sentimentClamping`: Ensures that character affinity scores stay strictly within the **0–50 range**, preventing UI overflows or negative progress values.
+ 
+### 2. Instrumentation Testing (Compose UI)
+We used the **Android Compose Test Library** to verify the integrity of the user interface and user flows. We've started with CharSelectScreen, but we will expand testing over the next week. 
+* **State Synchronization:** Automated tests verify that the `HorizontalPager` in the Character Selection screen correctly updates the `currentLanguage` state.
+* **User Flow Validation:** We tested the transition between narrative chapters to ensure the `dialogueIndex` remains consistent across configuration changes and session restores.
+ 
+### Testing Tech Stack
+
+| Tool | Purpose |
+| :--- | :--- |
+| **JUnit 4** | Primary framework for local unit tests. |
+| **Mockito** | Used for mocking `Application` and `SharedPreferences` dependencies. |
+| **Compose UI Test** | Used for interacting with the Semantics Tree in Jetpack Compose. |
+| **Android Studio Debugger** | Utilized with breakpoints to trace state transitions in the `LoveByteViewModel`. |
+ 
 
 ## TODOs for next time 
 - [ ] Polish sentiment
 - [ ] Create endings for each "route" for Python
-- [ ] 
+- [ ] Perhaps create a settings screen
 
 ## Stretch Goals 
 - [ ] Custom sprites for Python
 - [ ] Kotlin storyline and games
 - [ ] Game Audio
+
+## AI Disclosure, Updated
+
+### Anna's portion 
+Google Gemini was used to assist in "cute-ifying" the app's UI, providing advice on how to acheive a more pixelated look without departing from modern design standards (beveled edges instead of manually creating pixels, etc.). Additionally, it was used to figure out what preliminary testing should look like, as well as resolving issues involving mocking data for unit tests. Most notably, when the AI's initial testing suggestions conflicted with the app's singleton database structure, I manually refactored core logic into Companion Objects to ensure the code was testable in a local JVM environment. Additionally, it helped format this README :] 
 
 
 # LoveByte Checkpoint 4/7/26
