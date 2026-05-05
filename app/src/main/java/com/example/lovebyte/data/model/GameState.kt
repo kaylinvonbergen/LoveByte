@@ -25,14 +25,14 @@ enum class ProgrammingLanguage(
         get() = when (this) {
             PYTHON -> listOf(
                 Section("The Basics", listOf(
-                    Chapter(id = 1, title = "Print & Comments", startNodeId = 101),
+                    Chapter(id = 1, title = "Indentation", startNodeId = 101),
                     Chapter(id = 2, title = "Variables & Types", startNodeId = 201),
                     Chapter(id = 3, title = "Arithmetic Operators", startNodeId = 301)
                 )),
                 Section("Control Flow", listOf(
                     Chapter(id = 4, title = "If Statements", startNodeId = 401),
                     Chapter(id = 5, title = "For Loops", startNodeId = 501),
-                    Chapter(id = 6, title = "Lists & The 'In' Keyword", startNodeId = 601)
+                    Chapter(id = 6, title = "Keeping secrets", startNodeId = 601)
                 )),
                 Section("End", listOf(
                     Chapter(id = 7, title = "Goodbye", startNodeId = 701)

@@ -99,27 +99,12 @@ fun GameScreen(
                 SyntaxSliderMinigame(
                     blocks = activeBlocks,
                     onFinished = { success ->
-                        // Route FIRST, then close the minigame overlay
                         if (success) onNodeAdvanced(109) else onNodeAdvanced(110)
                         onMinigameResult(success)
                     },
                     onContinueAnyway = {
-                        onMinigameResult(false)
                         onNodeAdvanced(110)
-                    }
-                )
-            }
-
-            "LIGHT_SENSITIVE_SECRET" -> {
-                LightSensorMinigame(
-                    onFinished = { success ->
-                        onMinigameResult(success)
-                        // route to Chapter 3 nodes specifically
-                        if (success) onNodeAdvanced(306) else onNodeAdvanced(307)
-                    },
-                    onContinueAnyway = {
                         onMinigameResult(false)
-                        onNodeAdvanced(307)
                     }
                 )
             }
@@ -128,15 +113,29 @@ fun GameScreen(
                 EfficiencyStepper(
                     challenge = pythonChapterxLoopChallenges,
                     onFinished = { success ->
+                        if (success) onNodeAdvanced(513) else onNodeAdvanced(514)
                         onMinigameResult(success)
-                        if (success) onNodeAdvanced(508) else onNodeAdvanced(509)
                     },
                     onContinueAnyway = {
+                        onNodeAdvanced(514)
                         onMinigameResult(false)
-                        onNodeAdvanced(209)
                     }
                 )
             }
+
+            "LIGHT_SENSITIVE_SECRET" -> {
+                LightSensorMinigame(
+                    onFinished = { success ->
+                        if (success) onNodeAdvanced(612) else onNodeAdvanced(613)
+                        onMinigameResult(success)
+                    },
+                    onContinueAnyway = {
+                        onNodeAdvanced(613)
+                        onMinigameResult(false)
+                    }
+                )
+            }
+
             "PYTHON_ENDING" -> {
                 LaunchedEffect(Unit) {
                     onPythonEndingTriggered()
