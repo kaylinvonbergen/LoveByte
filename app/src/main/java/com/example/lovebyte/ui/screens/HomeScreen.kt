@@ -27,6 +27,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import com.example.lovebyte.ui.components.general.getSpriteForCharacter
+
+import androidx.compose.ui.res.painterResource
+
+import com.example.lovebyte.R
+
+import com.example.lovebyte.ui.components.general.LoveByteHeader
+
+
 @Composable
 fun HomeScreen(
     state: LoveByteState,
@@ -190,7 +201,14 @@ fun HomeScreen(
                 .padding(24.dp)
         ) {
             // header Section stays at the top for BOTH modes
-            HeaderSection(heroLanguage, state, deepPink, inkBrown, pixelWhite, pixelRoundedShape)
+            LoveByteHeader(
+                heroLanguage = heroLanguage,
+                state = state,
+                deepPink = deepPink,
+                inkBrown = inkBrown,
+                pixelWhite = pixelWhite,
+                pixelRoundedShape = pixelRoundedShape
+            )
 
             // handles centering for portrait while allowing the row to split for landscape
             Box(
@@ -222,14 +240,31 @@ fun HomeScreen(
                         }
                     }
                 } else {
+                    // PORTRAIT MODE
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        SpriteSection(heroLanguage, sakuraPink, deepPink, pixelRoundedShape, Modifier.height(320.dp))
-                        Spacer(modifier = Modifier.height(32.dp))
-                        ProgressSection(state, heroLanguage, deepPink, sakuraPink, inkBrown, pixelWhite, pixelRoundedShape)
+                        SpriteSection(
+                            heroLanguage,
+                            sakuraPink,
+                            deepPink,
+                            pixelRoundedShape,
+                            Modifier.height(380.dp)
+                        )
+
+                        Box(modifier = Modifier.offset(y = (-20).dp)) {
+                            ProgressSection(
+                                state,
+                                heroLanguage,
+                                deepPink,
+                                sakuraPink,
+                                inkBrown,
+                                pixelWhite,
+                                pixelRoundedShape
+                            )
+                        }
                     }
                 }
             }
@@ -237,67 +272,6 @@ fun HomeScreen(
             // buttons pinned to bottom in portrait mode
             if (!isLandscape) {
                 ActionButtons(state, deepPink, onContinueClicked, onSwapClicked, onSettingsClicked, isLandscape)
-            }
-        }
-    }
-}
-
-@Composable
-private fun HeaderSection(
-    heroLanguage: ProgrammingLanguage,
-    state: LoveByteState,
-    deepPink: Color,
-    inkBrown: Color,
-    pixelWhite: Color,
-    pixelRoundedShape: CutCornerShape
-) {
-    // profile photo + dynamic greeting from weather :3
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Surface(
-            modifier = Modifier
-                .size(72.dp)
-                .border(4.dp, deepPink, pixelRoundedShape),
-            shape = pixelRoundedShape,
-            color = pixelWhite
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = heroLanguage.displayName.take(1),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = deepPink
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Surface(
-            modifier = Modifier.weight(1f),
-            shape = CutCornerShape(topStart = 0.dp, bottomStart = 12.dp, topEnd = 12.dp, bottomEnd = 12.dp),
-            color = pixelWhite,
-            border = BorderStroke(3.dp, deepPink)
-        ) {
-            Column(Modifier.padding(12.dp)) {
-                Text(
-                    text = heroLanguage.displayName,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = deepPink,
-                    modifier = Modifier.padding(bottom = 2.dp)
-                )
-                val greetingText = if (state.cityName.isNotBlank() && state.weatherDescription.isNotBlank()) {
-                    "Hey, it's ${state.weatherDescription.lowercase()} in ${state.cityName}. Perfect time for some ${heroLanguage.displayName}!"
-                } else {
-                    "Hey, you're back! Time to get to ${heroLanguage.displayName}!"
-                }
-
-                Text(
-                    text = greetingText,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = inkBrown
-                )
             }
         }
     }
@@ -313,15 +287,18 @@ private fun SpriteSection(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        color = sakuraPink.copy(alpha = 0.1f),
+        color = Color.Transparent, // removes the background tint to let the sprite pop
         shape = pixelRoundedShape,
-        border = BorderStroke(2.dp, deepPink.copy(alpha = 0.2f))
     ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = "${heroLanguage.displayName} Sprite",
-                style = MaterialTheme.typography.titleMedium,
-                color = deepPink
+        Box(contentAlignment = Alignment.BottomCenter) { // aligns sprite to the bottom of the box
+            Image(
+                painter = getSpriteForCharacter(
+                    character = heroLanguage.displayName,
+                    emotion = "Friendly"
+                ),
+                contentDescription = "${heroLanguage.displayName} Sprite",
+                modifier = Modifier.fillMaxHeight(),
+                contentScale = ContentScale.FillHeight // ensures the character scales to the box height
             )
         }
     }

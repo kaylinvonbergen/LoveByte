@@ -2,6 +2,7 @@ package com.example.lovebyte.ui.screens
 
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image // Added
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -15,15 +16,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale // Added
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource // Added
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.lovebyte.R // Added
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.ProgrammingLanguage
 import com.example.lovebyte.data.model.SentimentScore
 import kotlinx.coroutines.launch
 import com.example.lovebyte.ui.components.general.PixelButton
+import com.example.lovebyte.ui.components.general.getSpriteForCharacter // Added
+import com.example.lovebyte.ui.components.general.LoveByteHeader
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -59,7 +65,14 @@ fun CharSelectScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 1. header section (profile photo + dynamic greeting from weather :3)
-            HeaderSection(heroLanguage, state, deepPink, inkBrown, pixelWhite, pixelRoundedShape)
+            LoveByteHeader(
+                heroLanguage = heroLanguage,
+                state = state,
+                deepPink = deepPink,
+                inkBrown = inkBrown,
+                pixelWhite = pixelWhite,
+                pixelRoundedShape = pixelRoundedShape
+            )
 
             Spacer(Modifier.height(if (isLandscape) 16.dp else 24.dp))
 
@@ -182,13 +195,11 @@ private fun CarouselPager(
     isLandscape: Boolean,
     state: LoveByteState
 ) {
-    // This row contains the arrows and the pager
     Row(
-        modifier = Modifier.fillMaxWidth(), // fill allocated half of the screen
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center // center the whole group
+        horizontalArrangement = Arrangement.Center
     ) {
-        // Left Arrow
         IconButton(
             onClick = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) } },
             enabled = pagerState.currentPage > 0
@@ -196,9 +207,8 @@ private fun CarouselPager(
             Icon(Icons.Default.ArrowBack, "Prev", tint = deepPink)
         }
 
-        // Swippable Area - Using a Box to ensure the content inside stays centered
         Box(
-            modifier = Modifier.width(if (isLandscape) 260.dp else 280.dp),
+            modifier = Modifier.width(if (isLandscape) 260.dp else 300.dp),
             contentAlignment = Alignment.Center
         ) {
             HorizontalPager(
@@ -211,20 +221,34 @@ private fun CarouselPager(
                 val percent = ((completedChapters.toFloat() / lang.totalChapters.toFloat()) * 100).toInt()
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // placeholder for sprite
+                    // placeholder for sprite - now rectangular in portrait to be bigger
                     Surface(
                         modifier = Modifier
-                            .size(if (isLandscape) 200.dp else 280.dp)
+                            .width(if (isLandscape) 200.dp else 280.dp)
+                            .height(if (isLandscape) 200.dp else 380.dp)
                             .border(4.dp, deepPink.copy(alpha = 0.4f), pixelRoundedShape),
                         shape = pixelRoundedShape,
                         color = sakuraPink.copy(alpha = 0.1f)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "${lang.displayName} Sprite",
-                                style = MaterialTheme.typography.labelLarge, // Pixelated
-                                color = deepPink
-                            )
+                            if (lang == ProgrammingLanguage.KOTLIN) {
+                                // fallback for Kotlin since we don't have sprites yet
+                                Text(
+                                    text = "KOTLIN",
+                                    style = MaterialTheme.typography.headlineMedium, // pixelated
+                                    color = deepPink
+                                )
+                            } else {
+                                Image(
+                                    painter = getSpriteForCharacter(
+                                        character = lang.displayName,
+                                        emotion = "Neutral"
+                                    ),
+                                    contentDescription = "${lang.displayName} Sprite",
+                                    modifier = Modifier.fillMaxSize(0.95f),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
                         }
                     }
 
@@ -232,7 +256,7 @@ private fun CarouselPager(
 
                     Text(
                         text = "$percent% COMPLETED",
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge, // pixelated
                         color = inkBrown,
                         fontSize = 11.sp
                     )
@@ -240,7 +264,6 @@ private fun CarouselPager(
             }
         }
 
-        // right arrow
         IconButton(
             onClick = { scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) } },
             enabled = pagerState.currentPage < languages.size - 1
@@ -250,47 +273,7 @@ private fun CarouselPager(
     }
 }
 
-@Composable
-private fun HeaderSection(
-    heroLanguage: ProgrammingLanguage,
-    state: LoveByteState,
-    deepPink: Color,
-    inkBrown: Color,
-    pixelWhite: Color,
-    pixelRoundedShape: CutCornerShape
-) {
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Surface(
-            modifier = Modifier.size(64.dp).border(3.dp, deepPink, pixelRoundedShape),
-            shape = pixelRoundedShape,
-            color = pixelWhite
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                // TODO: replace with sprite once we make them
-                Text(text = heroLanguage.displayName.take(1), style = MaterialTheme.typography.headlineMedium, color = deepPink)
-            }
-        }
 
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Surface(
-            modifier = Modifier.weight(1f),
-            shape = CutCornerShape(topStart = 0.dp, bottomStart = 12.dp, topEnd = 12.dp, bottomEnd = 12.dp),
-            color = pixelWhite,
-            border = BorderStroke(3.dp, deepPink)
-        ) {
-            Column(Modifier.padding(12.dp)) {
-                Text(text = "SYSTEM", style = MaterialTheme.typography.labelLarge, color = deepPink, fontSize = 12.sp)
-                val headerText = if (state.cityName.isNotBlank() && state.weatherDescription.isNotBlank()) {
-                    "It's ${state.weatherDescription.lowercase()} in ${state.cityName}! Do some ${heroLanguage.displayName}!"
-                } else {
-                    "Hey, you're back! Time to learn some ${heroLanguage.displayName}!"
-                }
-                Text(text = headerText, style = MaterialTheme.typography.bodyLarge, color = inkBrown)
-            }
-        }
-    }
-}
 
 @Composable
 private fun FooterButtons(
@@ -308,7 +291,7 @@ private fun FooterButtons(
             onClick = onInfoClick,
             color = Color(0xFFB19CD9),
 
-        )
+            )
         PixelButton(
             text = "SELECT",
             modifier = Modifier
@@ -317,7 +300,7 @@ private fun FooterButtons(
             onClick = onSelectClick,
             color = deepPink,
 
-        )
+            )
     }
 }
 

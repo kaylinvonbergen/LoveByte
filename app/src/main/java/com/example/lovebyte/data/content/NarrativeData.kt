@@ -37,7 +37,7 @@ private val pythonNodes = mapOf(
     ),
     102 to DialogueNode(
         id = 102,
-        speaker = "System",
+        speaker = "Python",
         text = "He offers you a cup of jasmine tea. How do you respond?",
         choices = listOf(
             DialogueChoice(
@@ -75,7 +75,7 @@ private val pythonNodes = mapOf(
     ),
     106 to DialogueNode(
         id = 106,
-        speaker = "System",
+        speaker = "Python",
         text = "He gestures to a holographic display buzzing with scattered brackets and stray symbols.",
         choices = listOf(
             DialogueChoice(
@@ -157,7 +157,7 @@ private val pythonNodes = mapOf(
     ),
     203 to DialogueNode(
         id = 203,
-        speaker = "System",
+        speaker = "Python",
         text = "Python pulls up a maintenance script for the greenhouse fans.",
         nextNodeId = 204
     ),
@@ -170,7 +170,7 @@ private val pythonNodes = mapOf(
     ),
     205 to DialogueNode(
         id = 205,
-        speaker = "System",
+        speaker = "Python",
         text = "He points toward a glowing path through the greenhouse floor.",
         choices = listOf(
             DialogueChoice(
@@ -258,7 +258,7 @@ private val pythonNodes = mapOf(
     ),
     302 to DialogueNode(
         id = 302,
-        speaker = "System",
+        speaker = "Python",
         text = "He points to a line of code in the holographic display: 'API_KEY = \"sk-123456789\"'. It’s glowing a dangerous, bright red.",
         choices = listOf(
             DialogueChoice(
