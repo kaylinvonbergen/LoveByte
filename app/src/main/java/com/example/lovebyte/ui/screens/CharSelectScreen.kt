@@ -217,9 +217,7 @@ private fun CarouselPager(
             ) { page ->
                 val lang = languages[page]
                 val currentChapter = state.progressMap[lang] ?: 1
-                val completedChapters = (currentChapter - 1).coerceAtLeast(0)
-                val percent = ((completedChapters.toFloat() / lang.totalChapters.toFloat()) * 100).toInt()
-
+                val percent = state.progressPercentage
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     // placeholder for sprite - now rectangular in portrait to be bigger
                     Surface(

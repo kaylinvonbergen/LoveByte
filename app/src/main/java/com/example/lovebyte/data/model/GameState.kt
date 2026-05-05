@@ -106,5 +106,5 @@ data class LoveByteState(
         }
 
     val progressPercentage: Int
-        get() = (progressFraction * 100).toInt()
+        get() = (progressFraction.coerceIn(0f, 1f) * 100).toInt()
 }
