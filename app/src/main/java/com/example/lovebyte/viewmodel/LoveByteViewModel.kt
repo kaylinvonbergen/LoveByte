@@ -173,6 +173,23 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    fun routePythonEnding() {
+        val currentState = _state.value
+        val score = currentState.sentimentMap[ProgrammingLanguage.PYTHON] ?: SentimentScore()
+
+        val maxScore = maxOf(score.love, score.friend, score.hate)
+
+        val possibleEndings = mutableListOf<Int>()
+
+        if (score.love == maxScore) possibleEndings.add(710)
+        if (score.friend == maxScore) possibleEndings.add(720)
+        if (score.hate == maxScore) possibleEndings.add(730)
+
+        val selectedEnding = possibleEndings.random()
+
+        advanceToNode(selectedEnding)
+    }
+
     private fun loadAllSavedProgress() {
         viewModelScope.launch {
             try {

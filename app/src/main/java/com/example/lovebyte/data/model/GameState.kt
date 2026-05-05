@@ -7,7 +7,7 @@ enum class ProgrammingLanguage(
 ) {
     PYTHON(
         displayName = "Python",
-        totalChapters = 12,
+        totalChapters = 6,
         description = "A friendly but blunt snake who values 'readability' above all else. They hate unnecessary braces and will definitely judge your indentation."
     ),
     KOTLIN(
@@ -31,18 +31,11 @@ enum class ProgrammingLanguage(
                 )),
                 Section("Control Flow", listOf(
                     Chapter(id = 4, title = "If Statements", startNodeId = 401),
-                    Chapter(id = 5, title = "Logical Operators", startNodeId = 501),
-                    Chapter(id = 6, title = "The 'In' Keyword", startNodeId = 601)
+                    Chapter(id = 5, title = "For Loops", startNodeId = 501),
+                    Chapter(id = 6, title = "Lists & The 'In' Keyword", startNodeId = 601)
                 )),
-                Section("Data Structures", listOf(
-                    Chapter(id = 7, title = "Lists & Indexing", startNodeId = 701),
-                    Chapter(id = 8, title = "Dictionaries", startNodeId = 801),
-                    Chapter(id = 9, title = "Tuples & Sets", startNodeId = 901)
-                )),
-                Section("Modular Magic", listOf(
-                    Chapter(id = 10, title = "Defining Functions", startNodeId = 1001),
-                    Chapter(id = 11, title = "Importing Modules", startNodeId = 1101),
-                    Chapter(id = 12, title = "The Final Project", startNodeId = 1201)
+                Section("End", listOf(
+                    Chapter(id = 7, title = "Goodbye", startNodeId = 701)
                 ))
             )
             KOTLIN -> listOf(

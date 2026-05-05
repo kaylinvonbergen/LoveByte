@@ -22,7 +22,8 @@ fun SettingsScreen(
     state: LoveByteState,
     onPrivateModeChanged: (Boolean) -> Unit,
     onReplayOnboarding: () -> Unit,
-    onChangeProficiency: () -> Unit
+    onChangeProficiency: () -> Unit,
+    onBackClicked: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -55,11 +56,26 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
-            Text(
-                text = "SETTINGS",
-                style = MaterialTheme.typography.headlineMedium,
-                color = deepPink
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                PixelButton(
+                    text = "←",
+                    onClick = onBackClicked,
+                    color = Color(0xFFB2F2BB),
+                    modifier = Modifier.width(64.dp)
+                )
+
+                Text(
+                    text = "SETTINGS",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = deepPink
+                )
+
+                Spacer(modifier = Modifier.width(64.dp)) // keeps title centered
+            }
 
             // -------------------------
             // PRIVATE MODE

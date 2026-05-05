@@ -32,7 +32,8 @@ fun GameScreen(
     onMinigameResult: (Boolean) -> Unit,
     onBackPressed: () -> Unit,
     onNextChapter: () -> Unit,
-    onChapterCompleted: () -> Unit
+    onChapterCompleted: () -> Unit,
+    onPythonEndingTriggered: () -> Unit
 ) {
     var showChapterComplete by remember { mutableStateOf(false) }
 
@@ -128,7 +129,7 @@ fun GameScreen(
                     challenge = pythonChapterxLoopChallenges,
                     onFinished = { success ->
                         onMinigameResult(success)
-                        if (success) onNodeAdvanced(208) else onNodeAdvanced(209)
+                        if (success) onNodeAdvanced(508) else onNodeAdvanced(509)
                     },
                     onContinueAnyway = {
                         onMinigameResult(false)
@@ -136,7 +137,13 @@ fun GameScreen(
                     }
                 )
             }
+            "PYTHON_ENDING" -> {
+                LaunchedEffect(Unit) {
+                    onPythonEndingTriggered()
+                }
+            }
         }
+
         // if there's a current node, display the associated text and sprite
         // means no minigame is active
     } else if (currentNode != null) {

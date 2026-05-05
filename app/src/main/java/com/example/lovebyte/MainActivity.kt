@@ -225,6 +225,9 @@ class MainActivity : ComponentActivity() {
                                 onChapterCompleted = {
                                     viewModel.markCurrentChapterComplete()
                                 },
+                                onPythonEndingTriggered = {
+                                    viewModel.routePythonEnding()
+                                },
                             )
                         }
 
@@ -232,9 +235,7 @@ class MainActivity : ComponentActivity() {
                         composable("settings") {
                             SettingsScreen(
                                 state = state,
-                                onPrivateModeChanged = { enabled ->
-                                    viewModel.setPrivateModeDefault(enabled)
-                                },
+                                onPrivateModeChanged = { viewModel.setPrivateModeDefault(it) },
                                 onReplayOnboarding = {
                                     viewModel.reopenOnboarding()
                                     navController.navigate("home")
@@ -242,6 +243,9 @@ class MainActivity : ComponentActivity() {
                                 onChangeProficiency = {
                                     viewModel.openProficiencySettings()
                                     navController.navigate("home")
+                                },
+                                onBackClicked = {
+                                    navController.popBackStack()
                                 }
                             )
                         }
