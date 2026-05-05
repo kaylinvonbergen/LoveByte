@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.lovebyte.ui.components.general.PixelButton
 import kotlinx.coroutines.delay
-
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 @Composable
 fun LightSensorMinigame(
     onFinished: (Boolean) -> Unit,
@@ -140,14 +141,59 @@ fun LightSensorMinigame(
                 Spacer(Modifier.height(48.dp))
 
                 // the "sun" button - converted to pixel style
-                IconButton(
-                    onClick = { onFinished(true) },
-                    modifier = Modifier
-                        .size(100.dp)
-                        .background(softMatcha, CutCornerShape(12.dp))
-                        .border(4.dp, pixelWhite, CutCornerShape(12.dp))
+                var isHolding by remember { mutableStateOf(false) }
+                var holdProgress by remember { mutableFloatStateOf(0f) }
+
+                LaunchedEffect(isHolding) {
+                    if (isHolding) {
+                        holdProgress = 0f
+                        val duration = 2000L
+                        val interval = 50L
+                        val steps = duration / interval
+
+                        repeat(steps.toInt()) {
+                            delay(interval)
+                            holdProgress += 1f / steps
+                        }
+
+                        // if still holding after full duration → success
+                        if (isHolding) {
+                            onFinished(true)
+                        }
+                    } else {
+                        holdProgress = 0f
+                    }
+                }
+
+                Box(
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("☀️", fontSize = 40.sp)
+                    // progress ring
+                    CircularProgressIndicator(
+                        progress = { holdProgress },
+                        modifier = Modifier.size(110.dp),
+                        color = deepPink,
+                        trackColor = Color.DarkGray,
+                        strokeWidth = 6.dp
+                    )
+
+                    // hold button
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        isHolding = true
+                                        tryAwaitRelease()
+                                        isHolding = false
+                                    }
+                                )
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("☀️", fontSize = 44.sp)
+                    }
                 }
             } else {
                 Text(
