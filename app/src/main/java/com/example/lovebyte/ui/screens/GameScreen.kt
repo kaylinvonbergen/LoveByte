@@ -258,7 +258,7 @@ fun GameScreen(
                 }
             }
 
-            // ✅ floating back button (TOP LAYER)
+
             IconButton(
                 onClick = onBackPressed,
                 modifier = Modifier
