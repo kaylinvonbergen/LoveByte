@@ -212,9 +212,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel.handleMinigameResult(success)
                                 },
                                 onBackPressed = {
-                                    navController.navigate("timeline/$langName") {
-                                        popUpTo("home") { inclusive = false }
-                                    }
+                                    navController.popBackStack()
                                 },
                                 onNextChapter = {
                                     val nextCh = chapterId + 1

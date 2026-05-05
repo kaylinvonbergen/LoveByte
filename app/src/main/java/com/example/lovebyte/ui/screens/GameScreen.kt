@@ -1,4 +1,6 @@
 package com.example.lovebyte.ui.screens
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -146,7 +148,9 @@ fun GameScreen(
         // if there's a current node, display the associated text and sprite
         // means no minigame is active
     } else if (currentNode != null) {
+
         Box(modifier = Modifier.fillMaxSize()) {
+
             // Background tint
             Surface(
                 modifier = Modifier.fillMaxSize(),
@@ -157,13 +161,10 @@ fun GameScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    // align with the top of the dialogue card
                     .padding(bottom = 180.dp),
                 contentAlignment = Alignment.BottomCenter
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                    // emotion Tag positioned slightly over the dialogue box for that layered look
                     Surface(
                         shape = pixelRoundedShape,
                         color = Color(0xFFB19CD9),
@@ -190,10 +191,7 @@ fun GameScreen(
                             .wrapContentHeight(),
                         contentScale = ContentScale.FillWidth
                     )
-
-
                 }
-
             }
 
             // dialogue UI
@@ -258,6 +256,20 @@ fun GameScreen(
                         }
                     }
                 }
+            }
+
+            // ✅ floating back button (TOP LAYER)
+            IconButton(
+                onClick = onBackPressed,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = deepPink
+                )
             }
         }
         // safety net if an error occurs, returns us back to timeline instead of crashing app
