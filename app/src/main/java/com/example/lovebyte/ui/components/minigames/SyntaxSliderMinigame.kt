@@ -332,10 +332,13 @@ private fun SyntaxPuzzleLine(
     LaunchedEffect(tiltVelocity, isActive) {
         if (isActive && !isPublicMode) {
             val targetX = block.targetLevel * tabWidthPx
-            val newOffset = (offsetX.value + (tiltVelocity * 60f)).coerceIn(0f, 1000f)
+            val sensorSpeed = 12f
+            val snapTolerance = 100f
+
+            val newOffset = (offsetX.value + (tiltVelocity * sensorSpeed)).coerceIn(0f, 1000f)
             offsetX.snapTo(newOffset)
 
-            if (abs(offsetX.value - targetX) < 30f) {
+            if (abs(offsetX.value - targetX) < snapTolerance) {
                 offsetX.animateTo(targetX, spring(stiffness = Spring.StiffnessMediumLow))
                 onSlotted()
             }
