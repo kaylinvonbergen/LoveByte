@@ -15,7 +15,8 @@ class GameScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // ─── Helpers ───────────────────────────────────────────────────────────────
+    // TEST HELPERS
+    // these reduce repetition when building test state and dialogue nodes for different scenarios
 
     private fun baseState(
         language: ProgrammingLanguage = ProgrammingLanguage.PYTHON,
@@ -24,6 +25,8 @@ class GameScreenTest {
         currentLanguage = language,
         isMiniGameActive = isMiniGameActive
     )
+
+
 
     private fun simpleNode(
         id: Int = 101,
@@ -43,7 +46,8 @@ class GameScreenTest {
         triggerEvent = triggerEvent
     )
 
-    // ─── Null node (error/safety state) ───────────────────────────────────────
+    // NULL STATE SAFETY
+    // ensures the UI handles missing dialogue nodes safely
 
     @Test
     fun gameScreen_nullNode_showsReturnButton() {
@@ -56,10 +60,13 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
+
             )
         }
 
+        // when no node exists, user should be able to exit safely
         composeTestRule.onNodeWithText("RETURN TO TIMELINE", ignoreCase = true).assertIsDisplayed()
     }
 
@@ -76,15 +83,18 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = { backPressed = true },
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
+        // ensure back navigation is wired correctly
         composeTestRule.onNodeWithText("RETURN TO TIMELINE", ignoreCase = true).performClick()
         assert(backPressed)
     }
 
-    // ─── Dialogue display ──────────────────────────────────────────────────────
+    // DIALOGUE RENDERING
+    // verifies core narrative UI elements render correctly
 
     @Test
     fun gameScreen_displaysNodeSpeakerName() {
@@ -97,7 +107,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -115,7 +126,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -133,7 +145,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -152,7 +165,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -161,7 +175,8 @@ class GameScreenTest {
             .assertIsDisplayed()
     }
 
-    // ─── Tap-to-advance (no choices) ──────────────────────────────────────────
+    // TAP-TO-ADVANCE FLOW (NO CHOICES)
+    // tests linear story progression behavior
 
     @Test
     fun gameScreen_noChoices_showsAdvanceIndicator() {
@@ -174,7 +189,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -194,11 +210,12 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
-        // Tap the dialogue text to advance
+        // tap the dialogue text to advance
         composeTestRule.onNodeWithText("Hello there!").performClick()
         assert(advancedTo == 102)
     }
@@ -216,7 +233,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = { chapterCompleted = true }
+                onChapterCompleted = { chapterCompleted = true },
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -235,15 +253,17 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
+        // end-of-chapter condition triggers completion callback
         composeTestRule.onNodeWithText("Hello there!").performClick()
         composeTestRule.onNodeWithText("CHAPTER COMPLETE!", ignoreCase = true).assertIsDisplayed()
     }
 
-    // ─── Chapter complete dialog ───────────────────────────────────────────────
+    // End-of-chapter condition triggers completion callback
 
     @Test
     fun chapterCompleteDialog_nextChapterButton_invokesCallback() {
@@ -258,12 +278,15 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = { nextChapterCalled = true },
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
-        // Trigger dialog
+        // trigger dialog
         composeTestRule.onNodeWithText("Hello there!").performClick()
+
+        // advance to next dialogue
         composeTestRule.onNodeWithText("NEXT CHAPTER", ignoreCase = true).performClick()
         assert(nextChapterCalled)
     }
@@ -281,7 +304,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = { backPressed = true },
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -301,7 +325,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -312,7 +337,8 @@ class GameScreenTest {
             .assertCountEquals(2)
     }
 
-    // ─── Choice nodes ──────────────────────────────────────────────────────────
+    // CHOICE-BASED DIALOGUE
+    // tests branching story interactions
 
     @Test
     fun gameScreen_withChoices_displaysAllChoiceButtons() {
@@ -330,7 +356,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -354,7 +381,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -377,7 +405,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -401,7 +430,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
@@ -410,8 +440,8 @@ class GameScreenTest {
         assert(advancedTo == -1)
     }
 
-    // ─── Minigame routing ──────────────────────────────────────────────────────
-
+    // CHOICE-BASED DIALOGUE
+    // tests branching story interactions
     @Test
     fun gameScreen_syntaxDashTrigger_showsSyntaxMinigame() {
         val node = simpleNode(triggerEvent = "SYNTAX_DASH")
@@ -425,18 +455,18 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 
-        // Dialogue card should NOT be visible — minigame takes over
+        // dialogue card should NOT be visible, minigame takes over
         composeTestRule.onNodeWithText("Hello there!").assertDoesNotExist()
     }
 
     @Test
     fun gameScreen_miniGameNotActive_doesNotShowMinigame() {
-        // Even if node has a triggerEvent, if isMiniGameActive is false the
-        // dialogue view should render normally
+        // even if node has a triggerEvent, if isMiniGameActive is false the dialogue view should render normally
         val node = simpleNode(triggerEvent = "SYNTAX_DASH")
 
         composeTestRule.setContent {
@@ -448,7 +478,8 @@ class GameScreenTest {
                 onMinigameResult = {},
                 onBackPressed = {},
                 onNextChapter = {},
-                onChapterCompleted = {}
+                onChapterCompleted = {},
+                onPythonEndingTriggered = {}
             )
         }
 

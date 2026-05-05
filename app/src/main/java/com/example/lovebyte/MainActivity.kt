@@ -200,12 +200,13 @@ fun SplashScreen(state: LoveByteState, onTimeout: () -> Unit) {
             FloatingPetal(index)
         }
 
-        // Keep the logo centered on top of the petals
+        // keep the logo centered on top of the petals
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // main logo container
             Surface(
                 modifier = Modifier.size(120.dp),
                 shape = CutCornerShape(16.dp),
@@ -217,6 +218,8 @@ fun SplashScreen(state: LoveByteState, onTimeout: () -> Unit) {
                 }
             }
             Spacer(Modifier.height(24.dp))
+
+            // app title branding
             Text(
                 text = "LoveByte",
                 style = MaterialTheme.typography.headlineLarge,
@@ -224,6 +227,8 @@ fun SplashScreen(state: LoveByteState, onTimeout: () -> Unit) {
                 letterSpacing = 4.sp
             )
             Spacer(Modifier.height(48.dp))
+
+            // tell user to click to next
             Text(
                 text = "TAP TO START",
                 style = MaterialTheme.typography.labelLarge,
@@ -235,17 +240,22 @@ fun SplashScreen(state: LoveByteState, onTimeout: () -> Unit) {
 }
 
 @Composable
-fun BoxScope.FloatingPetal(index: Int) { // Note the BoxScope to allow .align
+fun BoxScope.FloatingPetal(index: Int) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
+    val screenWidth = configuration.screenWidthDp // couldn't get it to work with the "more updated" one
     val screenHeight = configuration.screenHeightDp
     val transition = rememberInfiniteTransition(label = "petal")
 
-    // StartX now covers the whole screen width from the TopStart origin
+    // random spawn position horizontal
     val startX = remember(index) { (-20..screenWidth).random().toFloat() }
+
+    // start above visible screen
     val startY = remember(index) { (0..screenHeight).random().toFloat() * -2f }
+
+    // control sway of petals
     val swayDuration = remember(index) { (2000..4000).random() }
 
+    // loop the vertical falling animation infinitely
     val yPos by transition.animateFloat(
         initialValue = startY,
         targetValue = screenHeight.toFloat() + 100f,
@@ -254,6 +264,7 @@ fun BoxScope.FloatingPetal(index: Int) { // Note the BoxScope to allow .align
         ), label = "y"
     )
 
+    // drift the petals (mimic wind)
     val xSway by transition.animateFloat(
         initialValue = -40f,
         targetValue = 40f,
@@ -265,10 +276,11 @@ fun BoxScope.FloatingPetal(index: Int) { // Note the BoxScope to allow .align
 
     Box(
         Modifier
-            .align(Alignment.TopStart) // CRITICAL: Start from top-left, not the center
+            .align(Alignment.TopStart) // start from top-left, not the center
             .offset(x = startX.dp + xSway.dp, y = yPos.dp)
             .rotate(yPos / 10f)
     ) {
+        // simple oval petal
         androidx.compose.foundation.Canvas(modifier = Modifier.size(8.dp)) {
             drawOval(color = Color(0xFFFFB7C5).copy(alpha = 0.8f))
         }
