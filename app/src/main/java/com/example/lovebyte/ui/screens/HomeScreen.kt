@@ -412,7 +412,7 @@ private fun ActionButtons(
 }
 
 @Composable
-private fun ProficiencyRow(
+fun ProficiencyRow(
     languageName: String,
     selectedLevel: Int,
     onLevelSelected: (Int) -> Unit,
