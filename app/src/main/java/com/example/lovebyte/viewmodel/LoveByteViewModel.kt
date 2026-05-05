@@ -308,18 +308,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         saveCurrentProgress()
     }
 
-    fun onMiniGameSuccess() {
-        _state.value = _state.value.copy(
-            isMiniGameActive = false
-        )
-    }
-
-    fun onMiniGameFailed() {
-        _state.value = _state.value.copy(
-            isMiniGameActive = false,
-            errorMessage = "Mini-game failed. Try again!"
-        )
-    }
 
     fun getCurrentNode(): DialogueNode? {
         val currentLangName = _state.value.currentLanguage.name.uppercase()
@@ -526,6 +514,7 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    //make weather statements make sense
     companion object {
         fun mapWeatherToAdjective(main: String, description: String): String {
             val desc = description.lowercase()

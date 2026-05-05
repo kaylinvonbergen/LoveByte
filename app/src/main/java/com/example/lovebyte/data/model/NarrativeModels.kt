@@ -21,10 +21,10 @@ data class Section(
 data class DialogueNode(
     val id: Int,
     val speaker: String,
-    val text: String,
-    val emotion: String = "Neutral",
-    val nextNodeId: Int? = null,
-    val choices: List<DialogueChoice>? = null,
+    val text: String, // what the character is saying
+    val emotion: String = "Neutral", // what the sprite looks like
+    val nextNodeId: Int? = null, // what dialgue it sends you to
+    val choices: List<DialogueChoice>? = null, // dialogue options
     val triggerEvent: String? = null // e.g., "START_MINIGAME"
 )
 

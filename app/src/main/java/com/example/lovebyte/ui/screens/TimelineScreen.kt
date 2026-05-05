@@ -285,7 +285,7 @@ fun TimelineScreen(
 @Composable
 fun ChapterCard(
     chapter: Chapter,
-    languageName: String, // Added
+    languageName: String, // ??
     isCompleted: Boolean,
     isCurrent: Boolean,
     isUnlocked: Boolean,

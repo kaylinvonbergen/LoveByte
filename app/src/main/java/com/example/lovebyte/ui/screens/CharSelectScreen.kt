@@ -216,7 +216,6 @@ private fun CarouselPager(
                 modifier = Modifier.fillMaxWidth()
             ) { page ->
                 val lang = languages[page]
-                val currentChapter = state.progressMap[lang] ?: 1
                 val percent = state.progressPercentage
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     // placeholder for sprite - now rectangular in portrait to be bigger
@@ -302,6 +301,7 @@ private fun FooterButtons(
     }
 }
 
+// to visually show sentiment
 @Composable
 private fun SentimentBar(
     label: String,

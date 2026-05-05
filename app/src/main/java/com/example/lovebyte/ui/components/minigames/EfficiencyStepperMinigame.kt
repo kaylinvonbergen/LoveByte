@@ -328,6 +328,7 @@ fun EfficiencyStepper(
     }
 }
 
+// switches gamemode
 @Composable
 private fun PublicModePassSlider(
     currentCount: Int,

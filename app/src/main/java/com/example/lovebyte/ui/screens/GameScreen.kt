@@ -92,7 +92,7 @@ fun GameScreen(
         )
     }
 
-    // check for if a minigame is active, check for the minigame
+    // for events like end routes and mini-games
     if (state.isMiniGameActive && currentNode?.triggerEvent != null) {
         when (currentNode.triggerEvent) {
             "SYNTAX_DASH" -> {

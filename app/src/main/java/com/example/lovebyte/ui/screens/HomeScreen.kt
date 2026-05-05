@@ -54,7 +54,7 @@ fun HomeScreen(
         ProgrammingLanguage.PYTHON
     }
 
-    val context = LocalContext.current
+    // val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -88,6 +88,7 @@ fun HomeScreen(
         )
     }
 
+    // proficiency ranking
     if (state.shouldShowOnboarding && state.onboardingStep == 2) {
         AlertDialog(
             onDismissRequest = { },
@@ -138,6 +139,7 @@ fun HomeScreen(
         )
     }
 
+    // tell user where they start
     if (state.shouldShowOnboarding && state.onboardingStep == 3) {
         val pythonStartChapter = state.progressMap[ProgrammingLanguage.PYTHON] ?: 1
         val kotlinStartChapter = state.progressMap[ProgrammingLanguage.KOTLIN] ?: 1
@@ -171,6 +173,7 @@ fun HomeScreen(
         )
     }
 
+    // explain mini-games
     if (state.shouldShowOnboarding && state.onboardingStep == 4) {
         AlertDialog(
             onDismissRequest = { },
