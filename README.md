@@ -169,14 +169,13 @@ To maintain accessibility, the “Public Mode” option allows users to complete
 
 ### Sensor Framework Design Considerations
 
-Across all implementations, LoveByte follows Android’s sensor framework architecture and best practices. 
-Sensors are accessed through the SensorManager system service
-Sensor Availability is verified at runtime using getDefaultSensor()
-Sensor data is received through SensorEventListener callbacks (onSensorChanged, onAccuracyChanged)
-Sensor listeners are registered only while the app is in the foreground and actively using the feature
-Listeners are unregistered immediately using sensorManager.unregisterListener() to conserve battery
+Across all implementations, LoveByte follows Android’s sensor framework architecture and best practices:
 
-This ensures that LoveByte remains performant, battery-efficient, and compatible across a wide range of Android devices, which may vary significantly in available hardware sensors.
+- Sensors are accessed through the SensorManager system service  
+- Sensor availability is verified at runtime using getDefaultSensor()  
+- Sensor data is received through SensorEventListener callbacks (onSensorChanged, onAccuracyChanged)  
+- Sensor listeners are registered only while the app is in the foreground and actively using the feature  
+- Listeners are unregistered immediately using sensorManager.unregisterListener() to conserve battery  
 
 ---
 
@@ -195,7 +194,7 @@ Includes GameScreen, CharSelectScreen, HomeScreen, SettingsScreen, TimelineScree
 Responsible only for rendering UI and sending user events upward
 No direct business logic or data persistence 
 
-#### ViewModelLayer
+#### ViewModel Layer
 LoveByteViewModel 
 Handles dialogue progression, onboarding flow, minigame routing, etc.
 
