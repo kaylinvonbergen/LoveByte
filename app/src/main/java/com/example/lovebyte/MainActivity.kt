@@ -120,11 +120,8 @@ class MainActivity : ComponentActivity() {
                                 onSwapClicked = {
                                     navController.navigate("charselect")
                                 },
-                                onLocationPermissionGranted = { context ->
-                                    viewModel.updateWeatherFromLocation(context)
-                                },
-                                onLocationPermissionDenied = {
-                                    viewModel.setLocationDenied()
+                                onSettingsClicked = {
+                                    navController.navigate("settings")
                                 },
                                 onOnboardingNext = {
                                     viewModel.nextOnboardingStep()
@@ -232,9 +229,21 @@ class MainActivity : ComponentActivity() {
                         }
 
                         // 6. Settings
-                        // TODO: finish this later when we have more setting we'll care about
                         composable("settings") {
-                            SettingsScreen(state = state)
+                            SettingsScreen(
+                                state = state,
+                                onPrivateModeChanged = { enabled ->
+                                    viewModel.setPrivateModeDefault(enabled)
+                                },
+                                onReplayOnboarding = {
+                                    viewModel.reopenOnboarding()
+                                    navController.navigate("home")
+                                },
+                                onChangeProficiency = {
+                                    viewModel.openProficiencySettings()
+                                    navController.navigate("home")
+                                }
+                            )
                         }
                     }
                 }

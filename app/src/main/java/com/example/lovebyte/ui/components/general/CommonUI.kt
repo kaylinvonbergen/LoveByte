@@ -12,15 +12,16 @@ import androidx.compose.ui.unit.dp
 // re-used pixel button :]
 @Composable
 fun PixelButton(
-    text: String,
+    text: String? = null, // make nullable
     onClick: () -> Unit,
     color: Color,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    // allow to modify button color
-    textColor: Color = Color.White
+    textColor: Color = Color.White,
+    content: (@Composable () -> Unit)? = null // NEW
 ) {
-    val pixelShape = CutCornerShape(8.dp) // simulate pixelization by cutting the edges
+    val pixelShape = CutCornerShape(8.dp)
+
     Button(
         onClick = onClick,
         enabled = enabled,
@@ -30,16 +31,19 @@ fun PixelButton(
         shape = pixelShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = color,
-            disabledContainerColor = Color.Gray, // when the button is not enabled/usable, make it visually apparent
+            disabledContainerColor = Color.Gray,
             contentColor = textColor
         ),
-        // keep it "flat" to make it more "vintage"
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelLarge, // so it will be pixelated
-            color = textColor
-        )
+        if (content != null) {
+            content()
+        } else if (text != null) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                color = textColor
+            )
+        }
     }
 }

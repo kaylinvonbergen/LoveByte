@@ -72,6 +72,7 @@ data class LoveByteState(
     val errorMessage: String? = null,
 
     val currentLanguage: ProgrammingLanguage = ProgrammingLanguage.NONE,
+    val privateModeDefault: Boolean = false,
 
     val progressMap: Map<ProgrammingLanguage, Int> = mapOf(
         ProgrammingLanguage.PYTHON to 1,

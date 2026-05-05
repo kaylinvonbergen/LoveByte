@@ -24,14 +24,15 @@ import com.example.lovebyte.ui.components.general.PixelButton
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 
 @Composable
 fun HomeScreen(
     state: LoveByteState,
     onContinueClicked: () -> Unit,
     onSwapClicked: () -> Unit,
-    onLocationPermissionGranted: (android.content.Context) -> Unit,
-    onLocationPermissionDenied: () -> Unit,
+    onSettingsClicked: () -> Unit,
     onOnboardingNext: () -> Unit,
     onOnboardingPlacementComplete: (pythonLevel: Int, kotlinLevel: Int) -> Unit,
     onOnboardingFinish: () -> Unit,
@@ -217,7 +218,7 @@ fun HomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             ProgressSection(state, heroLanguage, deepPink, sakuraPink, inkBrown, pixelWhite, pixelRoundedShape)
-                            ActionButtons(state, deepPink, onContinueClicked, onSwapClicked, isLandscape)
+                            ActionButtons(state, deepPink, onContinueClicked, onSwapClicked, onSettingsClicked, isLandscape)
                         }
                     }
                 } else {
@@ -235,7 +236,7 @@ fun HomeScreen(
 
             // buttons pinned to bottom in portrait mode
             if (!isLandscape) {
-                ActionButtons(state, deepPink, onContinueClicked, onSwapClicked, false)
+                ActionButtons(state, deepPink, onContinueClicked, onSwapClicked, onSettingsClicked, isLandscape)
             }
         }
     }
@@ -380,6 +381,7 @@ private fun ActionButtons(
     deepPink: Color,
     onContinueClicked: () -> Unit,
     onSwapClicked: () -> Unit,
+    onSettingsClicked: () -> Unit,
     isLandscape: Boolean
 ) {
     Column(
@@ -397,12 +399,32 @@ private fun ActionButtons(
             modifier = Modifier.fillMaxWidth(buttonWidth)
         )
 
-        PixelButton(
-            onClick = onSwapClicked,
-            text = "SWAP ROUTES",
-            color = Color(0xFFB19CD9),
-            modifier = Modifier.fillMaxWidth(buttonWidth)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(buttonWidth),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            PixelButton(
+                onClick = onSwapClicked,
+                text = "SWAP ROUTES",
+                color = Color(0xFFB19CD9),
+                modifier = Modifier.weight(1f)
+            )
+
+            PixelButton(
+                onClick = onSettingsClicked,
+                color = Color(0xFFB2F2BB),
+                modifier = Modifier
+                    .width(64.dp)
+                    .height(56.dp),
+                content = {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Settings",
+                        tint = Color(0xFF5D4037)
+                    )
+                }
+            )
+        }
     }
 }
 

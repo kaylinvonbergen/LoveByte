@@ -1,33 +1,26 @@
 package com.example.lovebyte.viewmodel
 
-//Holds app state and exposes functions the UI can call, like onNextLineClicked().
+import android.app.Application
+import android.util.Log
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.lovebyte.BuildConfig
+import com.example.lovebyte.data.content.allNarrativeContent
+import com.example.lovebyte.data.local.DatabaseProvider
+import com.example.lovebyte.data.local.UserProgress
+import com.example.lovebyte.data.location.LocationHelper
 import com.example.lovebyte.data.model.DialogueChoice
+import com.example.lovebyte.data.model.DialogueNode
 import com.example.lovebyte.data.model.LoveByteState
-import com.example.lovebyte.data.repository.GameRepository
 import com.example.lovebyte.data.model.ProgrammingLanguage
+import com.example.lovebyte.data.model.SentimentScore
+import com.example.lovebyte.data.repository.ProgressRepository
+import com.example.lovebyte.data.repository.WeatherRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.example.lovebyte.data.model.DialogueNode
-// Swapped narrativeNodes for the master registry
-import com.example.lovebyte.data.content.allNarrativeContent
-import com.example.lovebyte.BuildConfig
-
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import com.example.lovebyte.data.local.DatabaseProvider
-import com.example.lovebyte.data.local.UserProgress
-import com.example.lovebyte.data.repository.ProgressRepository
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-
-import com.example.lovebyte.data.repository.WeatherRepository
-import com.example.lovebyte.data.location.LocationHelper
-
-
-import android.util.Log
-import com.example.lovebyte.data.model.SentimentScore
 
 class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -35,9 +28,7 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     private val prefs = application.getSharedPreferences("lovebyte_prefs", Application.MODE_PRIVATE)
 
     private val _state = MutableStateFlow(
-        LoveByteState(
-            isLoading = true
-        )
+        LoveByteState(isLoading = true)
     )
 
     val state: StateFlow<LoveByteState> = _state.asStateFlow()
@@ -48,6 +39,23 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     init {
         loadAllSavedProgress()
         checkOnboardingStatus()
+        loadSettings()
+    }
+
+    private fun loadSettings() {
+        val privateModeDefault = prefs.getBoolean("private_mode_default", false)
+
+        _state.value = _state.value.copy(
+            privateModeDefault = privateModeDefault
+        )
+    }
+
+    fun setPrivateModeDefault(enabled: Boolean) {
+        prefs.edit().putBoolean("private_mode_default", enabled).apply()
+
+        _state.value = _state.value.copy(
+            privateModeDefault = enabled
+        )
     }
 
     private fun checkOnboardingStatus() {
@@ -85,7 +93,13 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-    // Updates state when the user picks a language and loads any saved progress for it.
+    fun openProficiencySettings() {
+        _state.value = _state.value.copy(
+            shouldShowOnboarding = true,
+            onboardingStep = 2
+        )
+    }
+
     fun onLanguageSelected(language: ProgrammingLanguage) {
         _state.value = _state.value.copy(
             currentLanguage = language,
@@ -98,7 +112,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         loadSavedProgressForLanguage(language)
     }
 
-    // Starts a chapter by setting the current language, progress, and first dialogue node.
     fun loadChapter(language: ProgrammingLanguage, chapterId: Int) {
         val updatedProgressMap = _state.value.progressMap.toMutableMap()
         val currentSavedProgress = updatedProgressMap[language] ?: 1
@@ -119,7 +132,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         saveCurrentProgress()
     }
 
-    // Updates the selected chapter in state without fully starting/resuming it.
     fun onChapterSelected(chapterId: Int) {
         val currentState = _state.value
         val currentLanguage = currentState.currentLanguage
@@ -139,13 +151,12 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-
-    // Saves the user's current language, chapter, and dialogue position to the database.
     private fun saveCurrentProgress() {
         val currentState = _state.value
         val currentLanguage = currentState.currentLanguage
 
         if (currentLanguage == ProgrammingLanguage.NONE) return
+
         val sentiment = currentState.sentimentMap[currentLanguage] ?: SentimentScore()
 
         viewModelScope.launch {
@@ -162,13 +173,13 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // Loads saved progress for all supported languages when the ViewModel is created.
     private fun loadAllSavedProgress() {
         viewModelScope.launch {
             try {
                 val pythonProgress = progressRepository.getProgressForLanguageOnce(
                     ProgrammingLanguage.PYTHON.name
                 )
+
                 val kotlinProgress = progressRepository.getProgressForLanguageOnce(
                     ProgrammingLanguage.KOTLIN.name
                 )
@@ -197,8 +208,9 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 val restoredLanguage = when {
                     pythonProgress != null && kotlinProgress == null -> ProgrammingLanguage.PYTHON
                     kotlinProgress != null && pythonProgress == null -> ProgrammingLanguage.KOTLIN
-                    (pythonProgress?.chapterId ?: 1) >= (kotlinProgress?.chapterId ?: 1) &&
-                            pythonProgress != null -> ProgrammingLanguage.PYTHON
+                    pythonProgress != null &&
+                            (pythonProgress.chapterId >= (kotlinProgress?.chapterId ?: 1)) ->
+                        ProgrammingLanguage.PYTHON
                     kotlinProgress != null -> ProgrammingLanguage.KOTLIN
                     else -> ProgrammingLanguage.NONE
                 }
@@ -210,8 +222,9 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                     isLoading = false,
                     errorMessage = null
                 )
-
             } catch (e: Exception) {
+                Log.e("LOVE_BYTE_PROGRESS", "Failed to load saved progress", e)
+
                 _state.value = _state.value.copy(
                     isLoading = false,
                     errorMessage = "Failed to load saved progress."
@@ -220,7 +233,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // Loads saved progress for one specific language and restores that state if it exists.
     private fun loadSavedProgressForLanguage(language: ProgrammingLanguage) {
         if (language == ProgrammingLanguage.NONE) return
 
@@ -233,9 +245,17 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 val updatedProgressMap = _state.value.progressMap.toMutableMap()
                 updatedProgressMap[language] = savedProgress.chapterId
 
+                val updatedSentimentMap = _state.value.sentimentMap.toMutableMap()
+                updatedSentimentMap[language] = SentimentScore(
+                    love = savedProgress.lovePoints,
+                    friend = savedProgress.friendPoints,
+                    hate = savedProgress.hatePoints
+                )
+
                 _state.value = _state.value.copy(
                     currentLanguage = language,
                     progressMap = updatedProgressMap,
+                    sentimentMap = updatedSentimentMap,
                     dialogueIndex = savedProgress.dialogueIndex,
                     isMiniGameActive = false,
                     isPaused = false,
@@ -246,8 +266,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-
-    // Marks the current chapter complete and unlocks the next one if appropriate.
     private fun completeCurrentChapter() {
         val currentState = _state.value
         val currentLang = currentState.currentLanguage
@@ -268,20 +286,17 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-    // Public function that completes the chapter and saves that progress.
     fun markCurrentChapterComplete() {
         completeCurrentChapter()
         saveCurrentProgress()
     }
 
-    // Clears the mini-game active state after a successful mini-game.
     fun onMiniGameSuccess() {
         _state.value = _state.value.copy(
             isMiniGameActive = false
         )
     }
 
-    // Clears the mini-game and shows an error after a failed mini-game.
     fun onMiniGameFailed() {
         _state.value = _state.value.copy(
             isMiniGameActive = false,
@@ -289,14 +304,13 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-    // Returns the current dialogue node based on the saved dialogue index AND language.
     fun getCurrentNode(): DialogueNode? {
         val currentLangName = _state.value.currentLanguage.name.uppercase()
         val nodesForLanguage = allNarrativeContent[currentLangName] ?: emptyMap()
+
         return nodesForLanguage[_state.value.dialogueIndex]
     }
 
-    // Advances the story to a specific dialogue node and updates mini-game state if needed.
     fun advanceToNode(nextId: Int) {
         val currentLangName = _state.value.currentLanguage.name.uppercase()
         val nodesForLanguage = allNarrativeContent[currentLangName] ?: emptyMap()
@@ -311,14 +325,13 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         saveCurrentProgress()
     }
 
-    // Handles a dialogue choice by moving to that choice's target node.
     fun handleChoiceSelected(choice: DialogueChoice) {
         val currentState = _state.value
         val currentLang = currentState.currentLanguage
 
         val currentScore = currentState.sentimentMap[currentLang] ?: SentimentScore()
 
-        val updatedScore = currentScore.copy( // max and min 50 and 0, respectively
+        val updatedScore = currentScore.copy(
             love = (currentScore.love + choice.lovePoints).coerceIn(0, 50),
             friend = (currentScore.friend + choice.friendPoints).coerceIn(0, 50),
             hate = (currentScore.hate + choice.hatePoints).coerceIn(0, 50)
@@ -341,21 +354,28 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         saveCurrentProgress()
     }
 
-    // Handles the result of a mini-game by sending the player to the success or failure node.
     fun handleMinigameResult(success: Boolean) {
         val targetNode = if (success) 109 else 110
-
-        // Using advanceToNode ensures the language-specific map is checked
         advanceToNode(targetNode)
     }
 
-    // Resumes a chapter from saved progress if the saved node belongs to that chapter.
     fun resumeChapter(language: ProgrammingLanguage, chapterId: Int) {
         viewModelScope.launch {
             val savedProgress = progressRepository.getProgressForLanguageOnce(language.name)
+
             val updatedProgressMap = _state.value.progressMap.toMutableMap().apply {
                 val currentSavedProgress = this[language] ?: 1
                 put(language, maxOf(currentSavedProgress, chapterId))
+            }
+
+            val updatedSentimentMap = _state.value.sentimentMap.toMutableMap()
+
+            if (savedProgress != null) {
+                updatedSentimentMap[language] = SentimentScore(
+                    love = savedProgress.lovePoints,
+                    friend = savedProgress.friendPoints,
+                    hate = savedProgress.hatePoints
+                )
             }
 
             val chapterPrefix = chapterId.toString()
@@ -373,6 +393,7 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
             _state.value = _state.value.copy(
                 currentLanguage = language,
                 progressMap = updatedProgressMap,
+                sentimentMap = updatedSentimentMap,
                 dialogueIndex = restoredNode,
                 isMiniGameActive = false,
                 isPaused = false,
@@ -386,11 +407,18 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         val pythonStartingChapter = pythonLevel.coerceIn(1, 3)
         val kotlinStartingChapter = kotlinLevel.coerceIn(1, 3)
 
-        val updatedProgressMap = _state.value.progressMap.toMutableMap()
+        val currentState = _state.value
+
+        val updatedProgressMap = currentState.progressMap.toMutableMap()
         updatedProgressMap[ProgrammingLanguage.PYTHON] = pythonStartingChapter
         updatedProgressMap[ProgrammingLanguage.KOTLIN] = kotlinStartingChapter
 
-        _state.value = _state.value.copy(
+        val pythonSentiment =
+            currentState.sentimentMap[ProgrammingLanguage.PYTHON] ?: SentimentScore()
+        val kotlinSentiment =
+            currentState.sentimentMap[ProgrammingLanguage.KOTLIN] ?: SentimentScore()
+
+        _state.value = currentState.copy(
             progressMap = updatedProgressMap,
             currentLanguage = ProgrammingLanguage.PYTHON,
             onboardingStep = 3
@@ -401,7 +429,10 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 UserProgress(
                     language = ProgrammingLanguage.PYTHON.name,
                     chapterId = pythonStartingChapter,
-                    dialogueIndex = pythonStartingChapter * 100 + 1
+                    dialogueIndex = pythonStartingChapter * 100 + 1,
+                    lovePoints = pythonSentiment.love,
+                    friendPoints = pythonSentiment.friend,
+                    hatePoints = pythonSentiment.hate
                 )
             )
 
@@ -409,13 +440,15 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 UserProgress(
                     language = ProgrammingLanguage.KOTLIN.name,
                     chapterId = kotlinStartingChapter,
-                    dialogueIndex = kotlinStartingChapter * 100 + 1
+                    dialogueIndex = kotlinStartingChapter * 100 + 1,
+                    lovePoints = kotlinSentiment.love,
+                    friendPoints = kotlinSentiment.friend,
+                    hatePoints = kotlinSentiment.hate
                 )
             )
         }
     }
 
-    // Clears weather-related state when location access is denied or unavailable.
     fun setLocationDenied() {
         _state.value = _state.value.copy(
             weatherDescription = "",
@@ -424,7 +457,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-    // Gets the user's location, fetches weather for that location, and updates state.
     fun updateWeatherFromLocation(context: android.content.Context) {
         viewModelScope.launch {
             Log.d("WEATHER_DEBUG", "updateWeatherFromLocation called")
@@ -443,8 +475,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                     "WEATHER_DEBUG",
                     "Requesting weather for lat=${locationResult.latitude}, lon=${locationResult.longitude}"
                 )
-                Log.d("WEATHER_DEBUG", "locationResult = $locationResult")
-                Log.d("WEATHER_DEBUG", "API key = '${BuildConfig.WEATHER_API_KEY}'")
 
                 val weather = weatherRepository.getWeather(
                     lat = locationResult.latitude,
@@ -452,12 +482,9 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                     apiKey = BuildConfig.WEATHER_API_KEY
                 )
 
-                Log.d("WEATHER_DEBUG", "Weather API success: $weather")
-
                 val weatherInfo = weather.weather.firstOrNull()
 
                 val adjective = if (weatherInfo != null) {
-                    // Call the companion object method to remain testable
                     mapWeatherToAdjective(weatherInfo.main, weatherInfo.description)
                 } else {
                     ""
@@ -469,8 +496,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                     temperature = weather.main.temp,
                     errorMessage = null
                 )
-
-                Log.d("WEATHER_DEBUG", "State updated with weather")
             } catch (e: Exception) {
                 Log.e("WEATHER_DEBUG", "Weather fetch failed", e)
 
@@ -485,8 +510,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     }
 
     companion object {
-        // Converts raw weather API text into a simpler adjective for the UI.
-        // Moved to companion object to allow for pure unit testing without an Application context.
         fun mapWeatherToAdjective(main: String, description: String): String {
             val desc = description.lowercase()
             val mainLower = main.lowercase()
