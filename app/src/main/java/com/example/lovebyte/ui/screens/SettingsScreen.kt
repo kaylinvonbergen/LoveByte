@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.ui.components.general.PixelButton
 
@@ -40,7 +41,7 @@ fun SettingsScreen(
                     Manifest.permission.ACTIVITY_RECOGNITION
                 ) == PackageManager.PERMISSION_GRANTED
 
-    val deepPink = Color(0xFFFF85A1)
+    val deepPink = Color(0xFFE85D7A)
     val inkBrown = Color(0xFF5D4037)
     val pixelWhite = Color.White
     val pixelShape = CutCornerShape(8.dp)
@@ -101,6 +102,7 @@ fun SettingsScreen(
                         text = "CHANGE STARTING PROFICIENCY",
                         color = deepPink,
                         modifier = Modifier.fillMaxWidth()
+                            .testTag("change_proficiency_button"),
                     )
 
                     PixelButton(
@@ -108,6 +110,7 @@ fun SettingsScreen(
                         text = "REPLAY ONBOARDING",
                         color = deepPink,
                         modifier = Modifier.fillMaxWidth()
+                            .testTag("replay_onboarding_button"),
                     )
                 }
             }
@@ -180,7 +183,8 @@ private fun SettingSwitchRow(
 
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.testTag("private_mode_switch")
         )
     }
 }

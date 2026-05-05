@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource // Added for R.drawable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +55,7 @@ fun TimelineScreen(
 
     // set the cutiepie colors so we can use them later
     val sakuraPink = Color(0xFFFFB7C5)
-    val deepPink = Color(0xFFFF85A1)
+    val deepPink = Color(0xFFE85D7A)
     val inkBrown = Color(0xFF5D4037)
     val pixelWhite = Color(0xFFFFFFFF)
     val pixelRoundedShape = CutCornerShape(8.dp)
@@ -235,7 +236,8 @@ fun TimelineScreen(
 
             // 2. Sections list
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().
+                testTag("timeline_list"),
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
