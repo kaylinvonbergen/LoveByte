@@ -32,7 +32,6 @@ import com.example.lovebyte.data.model.SentimentScore
 class LoveByteViewModel(application: Application) : AndroidViewModel(application) {
 
     private val weatherRepository = WeatherRepository(RetrofitProvider.weatherApi)
-    private val locationHelper = LocationHelper(application)
     private val prefs = application.getSharedPreferences("lovebyte_prefs", Application.MODE_PRIVATE)
 
     private val _state = MutableStateFlow(
@@ -147,13 +146,17 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         val currentLanguage = currentState.currentLanguage
 
         if (currentLanguage == ProgrammingLanguage.NONE) return
+        val sentiment = currentState.sentimentMap[currentLanguage] ?: SentimentScore()
 
         viewModelScope.launch {
             progressRepository.saveProgress(
                 UserProgress(
                     language = currentLanguage.name,
                     chapterId = currentState.currentChapter,
-                    dialogueIndex = currentState.dialogueIndex
+                    dialogueIndex = currentState.dialogueIndex,
+                    lovePoints = sentiment.love,
+                    friendPoints = sentiment.friend,
+                    hatePoints = sentiment.hate
                 )
             )
         }
@@ -171,13 +174,24 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
                 )
 
                 val updatedProgressMap = _state.value.progressMap.toMutableMap()
+                val updatedSentimentMap = _state.value.sentimentMap.toMutableMap()
 
                 if (pythonProgress != null) {
                     updatedProgressMap[ProgrammingLanguage.PYTHON] = pythonProgress.chapterId
+                    updatedSentimentMap[ProgrammingLanguage.PYTHON] = SentimentScore(
+                        love = pythonProgress.lovePoints,
+                        friend = pythonProgress.friendPoints,
+                        hate = pythonProgress.hatePoints
+                    )
                 }
 
                 if (kotlinProgress != null) {
                     updatedProgressMap[ProgrammingLanguage.KOTLIN] = kotlinProgress.chapterId
+                    updatedSentimentMap[ProgrammingLanguage.KOTLIN] = SentimentScore(
+                        love = kotlinProgress.lovePoints,
+                        friend = kotlinProgress.friendPoints,
+                        hate = kotlinProgress.hatePoints
+                    )
                 }
 
                 val restoredLanguage = when {
@@ -191,10 +205,12 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
 
                 _state.value = _state.value.copy(
                     progressMap = updatedProgressMap,
+                    sentimentMap = updatedSentimentMap,
                     currentLanguage = restoredLanguage,
                     isLoading = false,
                     errorMessage = null
                 )
+
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     isLoading = false,

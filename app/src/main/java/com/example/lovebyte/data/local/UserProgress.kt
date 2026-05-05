@@ -7,5 +7,9 @@ import androidx.room.PrimaryKey
 data class UserProgress(
     @PrimaryKey val language: String,
     val chapterId: Int,
-    val dialogueIndex: Int
+    val dialogueIndex: Int,
+
+    val lovePoints: Int = 0,
+    val friendPoints: Int = 0,
+    val hatePoints: Int = 0
 )
