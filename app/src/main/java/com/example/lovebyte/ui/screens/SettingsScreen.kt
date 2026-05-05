@@ -6,6 +6,8 @@ import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.border
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,13 +19,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.ui.components.general.PixelButton
+import androidx.compose.runtime.*
 
 @Composable
 fun SettingsScreen(
     state: LoveByteState,
     onPrivateModeChanged: (Boolean) -> Unit,
     onReplayOnboarding: () -> Unit,
-    onChangeProficiency: () -> Unit,
+    onChangeProficiency: (Int, Int) -> Unit,
     onBackClicked: () -> Unit
 ) {
     val context = LocalContext.current
@@ -45,6 +48,9 @@ fun SettingsScreen(
     val inkBrown = Color(0xFF5D4037)
     val pixelWhite = Color.White
     val pixelShape = CutCornerShape(8.dp)
+    var showProficiencyPopup by remember { mutableStateOf(false) }
+    var pythonLevel by remember { mutableStateOf(1) }
+    var kotlinLevel by remember { mutableStateOf(1) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -62,12 +68,15 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                PixelButton(
-                    text = "←",
-                    onClick = onBackClicked,
-                    color = Color(0xFFB2F2BB),
-                    modifier = Modifier.width(64.dp)
-                )
+                IconButton(
+                    onClick = onBackClicked
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back to Home Screen",
+                        tint = deepPink
+                    )
+                }
 
                 Text(
                     text = "SETTINGS",
@@ -98,7 +107,7 @@ fun SettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
                     PixelButton(
-                        onClick = onChangeProficiency,
+                        onClick = { showProficiencyPopup = true },
                         text = "CHANGE STARTING PROFICIENCY",
                         color = deepPink,
                         modifier = Modifier.fillMaxWidth()
@@ -141,6 +150,61 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+    if (showProficiencyPopup) {
+        AlertDialog(
+            onDismissRequest = { showProficiencyPopup = false },
+            shape = pixelShape,
+            containerColor = pixelWhite,
+            modifier = Modifier.border(4.dp, deepPink, pixelShape),
+            title = {
+                Text(
+                    "Choose Your Starting Point",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = deepPink
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        "Rank your current proficiency for each language from 1 to 3.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = inkBrown
+                    )
+
+                    ProficiencyRow(
+                        languageName = "Python",
+                        selectedLevel = pythonLevel,
+                        onLevelSelected = { pythonLevel = it },
+                        inkBrown = inkBrown,
+                        deepPink = deepPink
+                    )
+
+                    ProficiencyRow(
+                        languageName = "Kotlin",
+                        selectedLevel = kotlinLevel,
+                        onLevelSelected = { kotlinLevel = it },
+                        inkBrown = inkBrown,
+                        deepPink = deepPink
+                    )
+                }
+            },
+            confirmButton = {
+                PixelButton(
+                    onClick = {
+                        onChangeProficiency(pythonLevel, kotlinLevel)
+                        showProficiencyPopup = false
+                    },
+                    text = "Done",
+                    color = deepPink
+                )
+            },
+            dismissButton = {
+                TextButton(onClick = { showProficiencyPopup = false }) {
+                    Text("Cancel", color = inkBrown)
+                }
+            }
+        )
     }
 }
 
@@ -187,6 +251,7 @@ private fun SettingSwitchRow(
             modifier = Modifier.testTag("private_mode_switch")
         )
     }
+
 }
 
 @Composable

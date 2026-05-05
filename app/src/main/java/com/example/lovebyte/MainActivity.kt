@@ -148,7 +148,7 @@ class MainActivity : ComponentActivity() {
                                 onChoiceSelected = { choice -> viewModel.handleChoiceSelected(choice) },
                                 onMinigameResult = { success -> viewModel.handleMinigameResult(success) },
                                 onBackPressed = {
-                                    navController.navigate("timeline/$langName") { popUpTo("home") { inclusive = false } }
+                                    navController.popBackStack()
                                 },
                                 onNextChapter = {
                                     val nextCh = chapterId + 1
@@ -170,9 +170,8 @@ class MainActivity : ComponentActivity() {
                                     viewModel.reopenOnboarding()
                                     navController.navigate("home")
                                 },
-                                onChangeProficiency = {
-                                    viewModel.openProficiencySettings()
-                                    navController.navigate("home")
+                                onChangeProficiency = { pythonLevel, kotlinLevel ->
+                                    viewModel.applyOnboardingPlacement(pythonLevel, kotlinLevel)
                                 },
                                 onBackClicked = {
                                     navController.popBackStack()
