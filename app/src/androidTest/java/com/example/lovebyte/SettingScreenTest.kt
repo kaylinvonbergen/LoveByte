@@ -4,84 +4,114 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.ui.screens.SettingsScreen
+import com.example.lovebyte.ui.theme.LoveByteTheme
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import org.junit.Assert.assertTrue
 
 class SettingsScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    private fun baseState(
-        privateMode: Boolean = false
-    ) = LoveByteState(
-        privateModeDefault = privateMode
-    )
 
-    // ─────────────────────────────────────────────
-    // BASIC UI
-    // ─────────────────────────────────────────────
+    // TEST HELPER
+    // creates a default state for settings tests
+    private fun baseState(privateMode: Boolean = false) =
+        LoveByteState(
+            privateModeDefault = privateMode
+        )
+
+    // BASIC UI RENDERING
+    // ensures core UI elements are visible on screen load
 
     @Test
     fun settingsScreen_displaysTitle() {
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
-        composeTestRule.onNodeWithText("SETTINGS").assertIsDisplayed()
+        // verify screen title appears
+        composeTestRule
+            .onNodeWithText("SETTINGS")
+            .assertIsDisplayed()
     }
 
     @Test
     fun settingsScreen_displaysPrivateModeSection() {
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
-        composeTestRule.onNodeWithText("Private Mode by Default").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Use alternate controls instead of sensors in mini-games.").assertIsDisplayed()
+        // verify private mode header
+        composeTestRule
+            .onNodeWithText("Private Mode by Default")
+            .assertIsDisplayed()
+
+        // verify explanation text for accessibility and clarity
+        composeTestRule
+            .onNodeWithText("Use alternate controls instead of sensors in mini-games.")
+            .assertIsDisplayed()
     }
 
     @Test
     fun settingsScreen_displaysButtons() {
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
-        composeTestRule.onNodeWithText("CHANGE STARTING PROFICIENCY").assertIsDisplayed()
-        composeTestRule.onNodeWithText("REPLAY ONBOARDING").assertIsDisplayed()
+        // ensure settings action buttons are visible
+        composeTestRule
+            .onNodeWithText("CHANGE STARTING PROFICIENCY")
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithText("REPLAY ONBOARDING")
+            .assertIsDisplayed()
     }
 
-    // ─────────────────────────────────────────────
-    // SWITCH BEHAVIOR
-    // ─────────────────────────────────────────────
+    // SWITCH STATE BEHAVIOR
+    // ensures UI correctly reflects state of private mode toggle
 
     @Test
     fun privateModeSwitch_reflectsState_true() {
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(privateMode = true),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(privateMode = true),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
+        // switch should be on when state is true
         composeTestRule
             .onNodeWithTag("private_mode_switch")
             .assertIsOn()
@@ -90,14 +120,18 @@ class SettingsScreenTest {
     @Test
     fun privateModeSwitch_reflectsState_false() {
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(privateMode = false),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(privateMode = false),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
+        // should be off when false
         composeTestRule
             .onNodeWithTag("private_mode_switch")
             .assertIsOff()
@@ -108,38 +142,46 @@ class SettingsScreenTest {
         var toggledValue: Boolean? = null
 
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(false),
-                onPrivateModeChanged = { toggledValue = it },
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(false),
+                    onPrivateModeChanged = { toggledValue = it },
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
+        // user toggles
         composeTestRule
             .onNodeWithTag("private_mode_switch")
             .performClick()
 
+        // make sure change actually received
         assertTrue(toggledValue == true)
     }
 
-    // ─────────────────────────────────────────────
     // BUTTON ACTIONS
-    // ─────────────────────────────────────────────
+    // ensures settings buttons correctly trigger callbacks
 
     @Test
     fun changeProficiencyButton_invokesCallback() {
         var clicked = false
 
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = { clicked = true }
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = { clicked = true },
+                    onBackClicked = {}
+                )
+            }
         }
 
+        // user clicks change proficiency
         composeTestRule
             .onNodeWithTag("change_proficiency_button")
             .performClick()
@@ -152,14 +194,18 @@ class SettingsScreenTest {
         var clicked = false
 
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = { clicked = true },
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = { clicked = true },
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
+        // clicks replay onboarding
         composeTestRule
             .onNodeWithTag("replay_onboarding_button")
             .performClick()
@@ -167,38 +213,51 @@ class SettingsScreenTest {
         assertTrue(clicked)
     }
 
-    // ─────────────────────────────────────────────
-    // PERMISSIONS TEXT
-    // ─────────────────────────────────────────────
+    // PERMISSIONS SECTION
+    // ensures informational UI is visible to the user
 
     @Test
     fun settingsScreen_displaysPermissionLabels() {
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
-        composeTestRule.onNodeWithText("Location Permission").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Activity Sensor Permission").assertIsDisplayed()
+
+        // verify headers
+        composeTestRule
+            .onNodeWithText("Location Permission")
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithText("Activity Sensor Permission")
+            .assertIsDisplayed()
     }
 
     @Test
     fun settingsScreen_displaysPermissionExplanation() {
         composeTestRule.setContent {
-            SettingsScreen(
-                state = baseState(),
-                onPrivateModeChanged = {},
-                onReplayOnboarding = {},
-                onChangeProficiency = {}
-            )
+            LoveByteTheme {
+                SettingsScreen(
+                    state = baseState(),
+                    onPrivateModeChanged = {},
+                    onReplayOnboarding = {},
+                    onChangeProficiency = {},
+                    onBackClicked = {}
+                )
+            }
         }
 
+        // verify explanation section
         composeTestRule
-            .onNodeWithText("LoveByte uses location", substring = true)
+            .onNodeWithTag("permission_explanation")
             .assertIsDisplayed()
     }
 }

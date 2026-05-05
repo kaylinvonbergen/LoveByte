@@ -7,14 +7,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
- * Unit tests for LoveByte core logic.
- * Pure JVM tests — no Android dependencies required.
+ * unit tests for LoveByte core logic.
+ * pure JVM tests — no Android dependencies required!
+ *
+ * used to verify deterministic game systems like:
+ *  * - sentiment updates
+ *  * - chapter routing
+ *  * - minigame branching
+ *  * - weather interpretation
  */
 class LoveByteLogicTest {
 
-    // ─────────────────────────────────────────────
     // WEATHER MAPPING
-    // ─────────────────────────────────────────────
 
     @Test
     fun `mapWeatherToAdjective handles all major weather types`() {
@@ -29,6 +33,8 @@ class LoveByteLogicTest {
 
     @Test
     fun `applyChoiceToSentiment correctly updates values`() {
+
+        // base emotional state before player choice is applied
         val current = SentimentScore(love = 10, friend = 10, hate = 10)
 
         val choice = DialogueChoice(
@@ -41,6 +47,7 @@ class LoveByteLogicTest {
 
         val result = applyChoiceToSentiment(current, choice)
 
+        // verify additive updates
         assertEquals(15, result.love)
         assertEquals(7, result.friend)
         assertEquals(12, result.hate)
@@ -48,6 +55,7 @@ class LoveByteLogicTest {
 
     @Test
     fun `applyChoiceToSentiment clamps between 0 and 50`() {
+        // test boundary protection
         val current = SentimentScore(love = 49, friend = 1, hate = 0)
 
         val choice = DialogueChoice(
@@ -60,17 +68,18 @@ class LoveByteLogicTest {
 
         val result = applyChoiceToSentiment(current, choice)
 
+        // ensure values stay clamped
         assertEquals(50, result.love)
         assertEquals(0, result.friend)
         assertEquals(0, result.hate)
     }
 
-    // ─────────────────────────────────────────────
+
     // DIALOGUE / NARRATIVE LOGIC
-    // ─────────────────────────────────────────────
 
     @Test
     fun `choice routes to correct node`() {
+        // verifiy choices poj t currently to nodes
         val choice = DialogueChoice(
             choiceText = "Go left",
             targetNodeId = 203
@@ -81,9 +90,8 @@ class LoveByteLogicTest {
         assertEquals(203, next)
     }
 
-    // ─────────────────────────────────────────────
+
     // CHAPTER LOGIC
-    // ─────────────────────────────────────────────
 
     @Test
     fun `chapter start node is calculated correctly`() {
@@ -92,9 +100,7 @@ class LoveByteLogicTest {
         assertEquals(301, getStartNode(3))
     }
 
-    // ─────────────────────────────────────────────
     // MINIGAME ROUTING
-    // ─────────────────────────────────────────────
 
     @Test
     fun `minigame result routes correctly`() {
@@ -102,9 +108,7 @@ class LoveByteLogicTest {
         assertEquals(110, getMinigameResultNode(false))
     }
 
-    // ─────────────────────────────────────────────
-    // EXISTING TEST (your original)
-    // ─────────────────────────────────────────────
+    // GENERAL CLAMPING BEHAVIOR
 
     @Test
     fun `sentiment scores are clamped correctly`() {
@@ -119,9 +123,10 @@ class LoveByteLogicTest {
         assertEquals(50, clampedMax)
     }
 
-    // ─────────────────────────────────────────────
+
     // TEST HELPERS (PURE FUNCTIONS)
-    // ─────────────────────────────────────────────
+
+    // applies dialogue choice to current sentiment state
 
     private fun applyChoiceToSentiment(
         current: SentimentScore,
@@ -134,10 +139,12 @@ class LoveByteLogicTest {
         )
     }
 
+    // computes starting node for a chapter
     private fun getStartNode(chapterId: Int): Int {
         return (chapterId * 100) + 1
     }
 
+    // return next node based on success or failure
     private fun getMinigameResultNode(success: Boolean): Int {
         return if (success) 109 else 110
     }

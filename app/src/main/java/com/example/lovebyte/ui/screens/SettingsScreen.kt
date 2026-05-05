@@ -68,6 +68,13 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                PixelButton(
+                    text = "←",
+                    onClick = onBackClicked,
+                    color = Color(0xFFB2F2BB),
+                    textColor = Color.Black,
+                    modifier = Modifier.width(64.dp)
+                )
                 IconButton(
                     onClick = onBackClicked
                 ) {
@@ -77,6 +84,7 @@ fun SettingsScreen(
                         tint = deepPink
                     )
                 }
+
 
                 Text(
                     text = "SETTINGS",
@@ -145,7 +153,8 @@ fun SettingsScreen(
                     Text(
                         text = "LoveByte uses location for dynamic weather-based dialogue and activity/sensor permissions for interactive mini-games. Private Mode allows you to play without using sensors.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = inkBrown
+                        color = inkBrown,
+                        modifier = Modifier.testTag("permission_explanation")
                     )
                 }
             }
