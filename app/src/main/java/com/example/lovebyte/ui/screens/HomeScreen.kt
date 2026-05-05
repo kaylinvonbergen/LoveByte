@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import com.example.lovebyte.ui.components.general.getSpriteForCharacter
@@ -48,6 +49,7 @@ fun HomeScreen(
     onOnboardingNext: () -> Unit,
     onOnboardingPlacementComplete: (pythonLevel: Int, kotlinLevel: Int) -> Unit,
     onOnboardingFinish: () -> Unit,
+    onLoadWeather: () -> Unit,
 ) {
     val heroLanguage = if (state.currentLanguage != ProgrammingLanguage.NONE) {
         state.currentLanguage
@@ -55,7 +57,10 @@ fun HomeScreen(
         ProgrammingLanguage.PYTHON
     }
 
-    // val context = LocalContext.current
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        onLoadWeather()
+    }
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
@@ -64,6 +69,8 @@ fun HomeScreen(
     val inkBrown = Color(0xFF5D4037)
     val pixelWhite = Color(0xFFFFFFFF)
     val pixelRoundedShape = CutCornerShape(8.dp)
+
+
 
     var pythonLevel by remember { mutableIntStateOf(1) }
     var kotlinLevel by remember { mutableIntStateOf(1) }

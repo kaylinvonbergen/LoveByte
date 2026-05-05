@@ -24,10 +24,12 @@ import com.example.lovebyte.ui.screens.*
 import com.example.lovebyte.ui.theme.LoveByteTheme
 import com.example.lovebyte.viewmodel.LoveByteViewModel
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.LaunchedEffect
 
 class MainActivity : ComponentActivity() {
     private val permissionLauncher =
@@ -98,7 +100,10 @@ class MainActivity : ComponentActivity() {
                                 onSettingsClicked = { navController.navigate("settings") },
                                 onOnboardingNext = { viewModel.nextOnboardingStep() },
                                 onOnboardingPlacementComplete = { py, kt -> viewModel.applyOnboardingPlacement(py, kt) },
-                                onOnboardingFinish = { viewModel.finishOnboarding() }
+                                onOnboardingFinish = { viewModel.finishOnboarding() },
+                                onLoadWeather = {
+                                    viewModel.updateWeatherFromLocation(this@MainActivity)
+                                }
                             )
                         }
 
