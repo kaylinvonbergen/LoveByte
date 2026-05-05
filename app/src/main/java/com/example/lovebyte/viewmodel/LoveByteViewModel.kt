@@ -113,37 +113,22 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun loadChapter(language: ProgrammingLanguage, chapterId: Int) {
-        val updatedProgressMap = _state.value.progressMap.toMutableMap()
-        val currentSavedProgress = updatedProgressMap[language] ?: 1
-        updatedProgressMap[language] = maxOf(currentSavedProgress, chapterId)
-
         val startNode = (chapterId * 100) + 1
 
         _state.value = _state.value.copy(
             currentLanguage = language,
-            progressMap = updatedProgressMap,
             dialogueIndex = startNode,
             isMiniGameActive = false,
             isPaused = false,
             isChapterComplete = false,
             errorMessage = null
         )
-
-        saveCurrentProgress()
     }
 
     fun onChapterSelected(chapterId: Int) {
         val currentState = _state.value
-        val currentLanguage = currentState.currentLanguage
-
-        if (currentLanguage == ProgrammingLanguage.NONE) return
-
-        val updatedProgressMap = currentState.progressMap.toMutableMap()
-        val currentSavedProgress = updatedProgressMap[currentLanguage] ?: 1
-        updatedProgressMap[currentLanguage] = maxOf(currentSavedProgress, chapterId)
 
         _state.value = currentState.copy(
-            progressMap = updatedProgressMap,
             dialogueIndex = 0,
             isMiniGameActive = false,
             isChapterComplete = false,
@@ -303,9 +288,37 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
         )
     }
 
-    fun markCurrentChapterComplete() {
-        completeCurrentChapter()
-        saveCurrentProgress()
+    fun markChapterComplete(language: ProgrammingLanguage, chapterId: Int) {
+        val currentState = _state.value
+        val updatedProgressMap = currentState.progressMap.toMutableMap()
+
+        val savedProgress = updatedProgressMap[language] ?: 1
+
+        if (chapterId >= savedProgress) {
+            updatedProgressMap[language] = chapterId + 1
+        }
+
+        _state.value = currentState.copy(
+            progressMap = updatedProgressMap,
+            isChapterComplete = true,
+            isMiniGameActive = false,
+            isPaused = false
+        )
+
+        val sentiment = currentState.sentimentMap[language] ?: SentimentScore()
+
+        viewModelScope.launch {
+            progressRepository.saveProgress(
+                UserProgress(
+                    language = language.name,
+                    chapterId = updatedProgressMap[language] ?: 1,
+                    dialogueIndex = _state.value.dialogueIndex,
+                    lovePoints = sentiment.love,
+                    friendPoints = sentiment.friend,
+                    hatePoints = sentiment.hate
+                )
+            )
+        }
     }
 
 

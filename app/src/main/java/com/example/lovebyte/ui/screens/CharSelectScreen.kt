@@ -216,7 +216,16 @@ private fun CarouselPager(
                 modifier = Modifier.fillMaxWidth()
             ) { page ->
                 val lang = languages[page]
-                val percent = state.progressPercentage
+                val currentProgress = state.progressMap[lang] ?: 1
+                val completedChapters = (currentProgress - 1).coerceAtLeast(0)
+
+                val percent = if (lang.totalChapters > 0) {
+                    ((completedChapters.toFloat() / lang.totalChapters.toFloat()) * 100)
+                        .coerceIn(0f, 100f)
+                        .toInt()
+                } else {
+                    0
+                }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     // placeholder for sprite - now rectangular in portrait to be bigger
                     Surface(

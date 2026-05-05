@@ -157,7 +157,7 @@ class MainActivity : ComponentActivity() {
                                 onPythonEndingTriggered = {
                                     viewModel.routePythonEnding()
                                 },
-                                onChapterCompleted = { viewModel.markCurrentChapterComplete() },
+                                onChapterCompleted = { viewModel.markChapterComplete(selectedLang, chapterId) },
                             )
                         }
 
