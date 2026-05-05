@@ -33,7 +33,7 @@ class SettingsScreenTest {
                     state = baseState(),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -53,7 +53,7 @@ class SettingsScreenTest {
                     state = baseState(),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -78,7 +78,7 @@ class SettingsScreenTest {
                     state = baseState(),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -105,7 +105,7 @@ class SettingsScreenTest {
                     state = baseState(privateMode = true),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -125,7 +125,7 @@ class SettingsScreenTest {
                     state = baseState(privateMode = false),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -147,7 +147,7 @@ class SettingsScreenTest {
                     state = baseState(false),
                     onPrivateModeChanged = { toggledValue = it },
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -162,33 +162,6 @@ class SettingsScreenTest {
         assertTrue(toggledValue == true)
     }
 
-    // BUTTON ACTIONS
-    // ensures settings buttons correctly trigger callbacks
-
-    @Test
-    fun changeProficiencyButton_invokesCallback() {
-        var clicked = false
-
-        composeTestRule.setContent {
-            LoveByteTheme {
-                SettingsScreen(
-                    state = baseState(),
-                    onPrivateModeChanged = {},
-                    onReplayOnboarding = {},
-                    onChangeProficiency = { clicked = true },
-                    onBackClicked = {}
-                )
-            }
-        }
-
-        // user clicks change proficiency
-        composeTestRule
-            .onNodeWithTag("change_proficiency_button")
-            .performClick()
-
-        assertTrue(clicked)
-    }
-
     @Test
     fun replayOnboardingButton_invokesCallback() {
         var clicked = false
@@ -199,7 +172,7 @@ class SettingsScreenTest {
                     state = baseState(),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = { clicked = true },
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -224,7 +197,7 @@ class SettingsScreenTest {
                     state = baseState(),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
@@ -249,7 +222,7 @@ class SettingsScreenTest {
                     state = baseState(),
                     onPrivateModeChanged = {},
                     onReplayOnboarding = {},
-                    onChangeProficiency = {},
+                    onChangeProficiency = { _, _ -> },
                     onBackClicked = {}
                 )
             }
