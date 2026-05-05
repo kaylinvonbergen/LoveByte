@@ -16,6 +16,12 @@ import com.example.lovebyte.ui.components.minigames.*
 import com.example.lovebyte.data.content.*
 import com.example.lovebyte.ui.components.general.PixelButton
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.FilterQuality
+import com.example.lovebyte.ui.components.general.getSpriteForCharacter
+
+
 // game screen composable
 @Composable
 fun GameScreen(
@@ -141,30 +147,47 @@ fun GameScreen(
                 color = sakuraPink.copy(alpha = 0.05f)
             ) {}
 
-            // Sprite Area
+            // sprite area
             Box(
-                modifier = Modifier.fillMaxSize().padding(bottom = 260.dp),
-                contentAlignment = Alignment.Center
+                modifier = Modifier
+                    .fillMaxSize()
+                    // align with the top of the dialogue card
+                    .padding(bottom = 180.dp),
+                contentAlignment = Alignment.BottomCenter
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        "[ ${state.currentLanguage.name.uppercase()} SPRITE ]",
-                        style = MaterialTheme.typography.headlineMedium, // pixelated
-                        color = deepPink
-                    )
+
+                    // emotion Tag positioned slightly over the dialogue box for that layered look
                     Surface(
                         shape = pixelRoundedShape,
-                        color = Color(0xFFB19CD9), // lavender for emotion tags
-                        modifier = Modifier.padding(top = 12.dp).border(2.dp, pixelWhite, pixelRoundedShape)
+                        color = Color(0xFFB19CD9),
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 10.dp)
+                            .border(2.dp, pixelWhite, pixelRoundedShape)
                     ) {
                         Text(
                             currentNode.emotion.uppercase(),
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelLarge, // pixelated
+                            style = MaterialTheme.typography.labelLarge,
                             color = Color.White
                         )
                     }
+
+                    Image(
+                        painter = getSpriteForCharacter(
+                            character = currentNode.speaker,
+                            emotion = currentNode.emotion
+                        ),
+                        contentDescription = "Character Sprite",
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .wrapContentHeight(),
+                        contentScale = ContentScale.FillWidth
+                    )
+
+
                 }
+
             }
 
             // dialogue UI

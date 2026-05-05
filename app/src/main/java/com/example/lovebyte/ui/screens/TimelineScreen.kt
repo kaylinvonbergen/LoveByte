@@ -3,6 +3,7 @@ package com.example.lovebyte.ui.screens
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image // Added for custom logo/sprites
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -16,17 +17,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource // Added for R.drawable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.lovebyte.R // Added for your custom assets
 import com.example.lovebyte.data.model.LoveByteState
 import com.example.lovebyte.data.model.Chapter
 import com.example.lovebyte.data.model.ProgrammingLanguage
+import com.example.lovebyte.ui.components.general.getSpriteForCharacter // Added for character visuals
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -114,6 +120,24 @@ fun TimelineScreen(
                         )
                     }
             ) {
+                // Shared logo logic to handle Python icon or Kotlin fallback
+                val logoContent: @Composable (Int) -> Unit = { padding ->
+                    if (currentLang == ProgrammingLanguage.PYTHON) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_python),
+                            contentDescription = "Python Logo",
+                            modifier = Modifier.padding(padding.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    } else {
+                        Text(
+                            text = "K",
+                            color = deepPink,
+                            style = if (isLandscape) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineMedium
+                        )
+                    }
+                }
+
                 if (isLandscape) {
                     // LANDSCAPE HEADER: scrollable Row to save vertical space
                     Row(
@@ -131,11 +155,7 @@ fun TimelineScreen(
                             color = pixelWhite
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text(
-                                    text = currentLang.displayName.take(1),
-                                    color = deepPink,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                                logoContent(4)
                             }
                         }
 
@@ -180,11 +200,7 @@ fun TimelineScreen(
                                 color = pixelWhite
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = currentLang.displayName.take(1),
-                                        color = deepPink,
-                                        style = MaterialTheme.typography.headlineMedium
-                                    )
+                                    logoContent(8)
                                 }
                             }
                             Spacer(Modifier.width(16.dp))
@@ -246,6 +262,7 @@ fun TimelineScreen(
 
                         ChapterCard(
                             chapter = chapter,
+                            languageName = currentLang.displayName, // Added for sprite lookup
                             isCompleted = isCompleted,
                             isCurrent = isCurrent,
                             isUnlocked = isUnlocked,
@@ -268,6 +285,7 @@ fun TimelineScreen(
 @Composable
 fun ChapterCard(
     chapter: Chapter,
+    languageName: String, // Added
     isCompleted: Boolean,
     isCurrent: Boolean,
     isUnlocked: Boolean,
@@ -300,7 +318,7 @@ fun ChapterCard(
 
             Spacer(Modifier.width(16.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "CHAPTER ${chapter.id}",
                     style = MaterialTheme.typography.labelLarge,
@@ -313,6 +331,8 @@ fun ChapterCard(
                     color = if (isUnlocked) inkBrown else Color.Gray
                 )
             }
+
+
         }
     }
 }
