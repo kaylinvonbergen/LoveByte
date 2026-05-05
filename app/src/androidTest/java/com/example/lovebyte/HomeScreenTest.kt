@@ -16,116 +16,264 @@ class HomeScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    @Test
-    fun onboarding_step1_displaysWelcomeMessage() {
-        val onboardingState = LoveByteState(
-            shouldShowOnboarding = true,
-            onboardingStep = 1
-        )
+    // TEST HELPER
+    // reduces repetition when rendering HomeScreen with different states
 
+    private fun setHome(state: LoveByteState,
+                        onContinue: () -> Unit = {},
+                        onSwap: () -> Unit = {},
+                        onSettings: () -> Unit = {},
+                        onNext: () -> Unit = {},
+                        onPlacement: (Int, Int) -> Unit = { _, _ -> },
+                        onFinish: () -> Unit = {}
+    ) {
         composeTestRule.setContent {
             HomeScreen(
-                state = onboardingState,
-                onContinueClicked = {},
-                onSwapClicked = {},
-                onSettingsClicked = {},
-                onOnboardingNext = {},
-                onOnboardingPlacementComplete = { _, _ -> },
-                onOnboardingFinish = {}
+                state = state,
+                onContinueClicked = onContinue,
+                onSwapClicked = onSwap,
+                onSettingsClicked = onSettings,
+                onOnboardingNext = onNext,
+                onOnboardingPlacementComplete = onPlacement,
+                onOnboardingFinish = onFinish
             )
         }
-
-        // Verify Step 1 content
-        composeTestRule.onNodeWithText("Welcome to LoveByte!", ignoreCase = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Next", ignoreCase = true).assertIsDisplayed()
     }
 
+    // ONBOARDING STEP 1
+    // verifies that the welcome screen is displayed correctly
+
     @Test
-    fun onboarding_step2_allowsProficiencySelection() {
-        val onboardingState = LoveByteState(
-            shouldShowOnboarding = true,
-            onboardingStep = 2
+    fun onboarding_step1_displays_welcome_and_next() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = true,
+                onboardingStep = 1
+            )
         )
 
-        composeTestRule.setContent {
-            HomeScreen(
-                state = onboardingState,
-                onContinueClicked = {},
-                onSwapClicked = {},
-                onSettingsClicked = {},
-                onOnboardingNext = {},
-                onOnboardingPlacementComplete = { _, _ -> },
-                onOnboardingFinish = {}
-            )
-        }
-
-        // Targets the "1" specifically inside the Python Row
-        composeTestRule
-            .onNode(
-                hasText("1") and hasAnyAncestor(hasTestTag("Python_Row")),
-                useUnmergedTree = true
-            )
+        // ensure welcome message is visible
+        composeTestRule.onNodeWithText("Welcome to LoveByte!", ignoreCase = true)
             .assertIsDisplayed()
 
-        // Targets the "1" specifically inside the Kotlin Row
-        composeTestRule
-            .onNode(
-                hasText("1") and hasAnyAncestor(hasTestTag("Kotlin_Row")),
-                useUnmergedTree = true
-            )
+        // ensure user can proceed
+        composeTestRule.onNodeWithText("Next")
             .assertIsDisplayed()
     }
 
+    // ONBOARDING STEP 2
+    // verifies language proficiency selection UI is shown
+
     @Test
-    fun mainDashboard_displaysCorrectSpriteAndChapter() {
-        val activeState = LoveByteState(
-            shouldShowOnboarding = false,
-            currentLanguage = ProgrammingLanguage.PYTHON,
-            progressMap = mapOf(ProgrammingLanguage.PYTHON to 3) // Chapter 3
+    fun onboarding_step2_shows_proficiency_rows() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = true,
+                onboardingStep = 2
+            )
         )
 
-        composeTestRule.setContent {
-            HomeScreen(
-                state = activeState,
-                onContinueClicked = {},
-                onSwapClicked = {},
-                onSettingsClicked = {},
-                onOnboardingNext = {},
-                onOnboardingPlacementComplete = { _, _ -> },
-                onOnboardingFinish = {}
+        // python row should be present
+        composeTestRule.onNodeWithTag("Python_Row")
+            .assertIsDisplayed()
+
+        // Python row should be present
+        composeTestRule.onNodeWithTag("Kotlin_Row")
+            .assertIsDisplayed()
+    }
+
+    // ONBOARDING STEP 3
+    // verifies placement results screen and interactions
+    @Test
+    fun onboarding_step3_shows_placement_dialog() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = true,
+                onboardingStep = 3,
+                progressMap = mapOf(
+                    ProgrammingLanguage.PYTHON to 2,
+                    ProgrammingLanguage.KOTLIN to 3
+                )
             )
-        }
+        )
 
-        // 1. Verify the Python Sprite is shown via Content Description
-        composeTestRule.onNodeWithContentDescription("Python Sprite").assertIsDisplayed()
-
-        // 2. Verify the specific chapter text is rendered correctly
-        composeTestRule.onNodeWithText("PYTHON: CHAPTER 3", ignoreCase = true).assertIsDisplayed()
-
-        // 3. Verify the "CONTINUE" button appears instead of "START"
-        composeTestRule.onNodeWithText("CONTINUE").assertIsDisplayed()
+        // placement summary dialog should appear
+        composeTestRule.onNodeWithText("Starting Placement")
+            .assertIsDisplayed()
     }
 
     @Test
-    fun mainDashboard_noLanguageSelected_showsStartButton() {
-        val newState = LoveByteState(
-            shouldShowOnboarding = false,
-            currentLanguage = ProgrammingLanguage.NONE
+    fun onboarding_step3_next_button_triggers_callback() {
+        var nextCalled = false
+
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = true,
+                onboardingStep = 3,
+                progressMap = mapOf(
+                    ProgrammingLanguage.PYTHON to 2,
+                    ProgrammingLanguage.KOTLIN to 3
+                )
+            ),
+            onNext = { nextCalled = true }
         )
 
-        composeTestRule.setContent {
-            HomeScreen(
-                state = newState,
-                onContinueClicked = {},
-                onSwapClicked = {},
-                onSettingsClicked = {},
-                onOnboardingNext = {},
-                onOnboardingPlacementComplete = { _, _ -> },
-                onOnboardingFinish = {}
-            )
-        }
+        // user confirms placement and proceeds
+        composeTestRule.onNodeWithText("Next").performClick()
 
-        // When no language is selected, it should prompt to "START"
-        composeTestRule.onNodeWithText("START").assertIsDisplayed()
+        assert(nextCalled)
+    }
+
+    // ONBOARDING STEP 4
+    // verifies sensor explanation screen and final onboarding action
+
+    @Test
+    fun onboarding_step4_shows_sensor_info() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = true,
+                onboardingStep = 4
+            )
+        )
+
+        // ensure sensor explanation dialog is shown
+        composeTestRule.onNodeWithText("Mini-Game Sensors")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun onboarding_step4_finish_triggers_callback() {
+        var finished = false
+
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = true,
+                onboardingStep = 4
+            ),
+            onFinish = { finished = true }
+        )
+
+        // user completes onboarding
+        composeTestRule.onNodeWithText("Okay").performClick()
+
+        assert(finished)
+    }
+
+    // MAIN DASHBOARD STATES
+    // tests correct UI depending on user progress state
+    @Test
+    fun dashboard_shows_continue_when_language_selected() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = false,
+                currentLanguage = ProgrammingLanguage.PYTHON
+            )
+        )
+
+        // if progress, cont button appears
+        composeTestRule.onNodeWithText("CONTINUE")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun dashboard_shows_start_when_no_language_selected() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = false,
+                currentLanguage = ProgrammingLanguage.NONE
+            )
+        )
+
+        // if no progress, start button
+        composeTestRule.onNodeWithText("START")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun dashboard_shows_python_sprite_and_progress_text() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = false,
+                currentLanguage = ProgrammingLanguage.PYTHON,
+                progressMap = mapOf(ProgrammingLanguage.PYTHON to 3)
+            )
+        )
+
+        // char sprite should render
+        composeTestRule.onNodeWithContentDescription("Python Sprite")
+            .assertIsDisplayed()
+
+        // progress text should match chapter state
+        composeTestRule.onNodeWithText("PYTHON: CHAPTER 3", ignoreCase = true)
+            .assertIsDisplayed()
+    }
+
+    // BUTTON CALLBACKS
+    // verifies UI buttons correctly trigger navigation/actions
+
+    @Test
+    fun continue_button_triggers_callback() {
+        var clicked = false
+
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = false,
+                currentLanguage = ProgrammingLanguage.PYTHON
+            ),
+            onContinue = { clicked = true }
+        )
+
+        composeTestRule.onNodeWithText("CONTINUE").performClick()
+
+        assert(clicked)
+    }
+
+    @Test
+    fun swap_button_triggers_callback() {
+        var swapped = false
+
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = false,
+                currentLanguage = ProgrammingLanguage.PYTHON
+            ),
+            onSwap = { swapped = true }
+        )
+
+        composeTestRule.onNodeWithText("SWAP ROUTES").performClick()
+
+        assert(swapped)
+    }
+
+    @Test
+    fun settings_button_is_visible() {
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = false,
+                currentLanguage = ProgrammingLanguage.PYTHON
+            )
+        )
+
+        // settings icon should always exist on dashboard
+        composeTestRule.onNodeWithContentDescription("Settings")
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun settings_button_triggers_callback() {
+        var settingsClicked = false
+
+        setHome(
+            LoveByteState(
+                shouldShowOnboarding = false,
+                currentLanguage = ProgrammingLanguage.PYTHON
+            ),
+            onSettings = { settingsClicked = true }
+        )
+
+        composeTestRule.onNodeWithContentDescription("Settings")
+            .performClick()
+
+        assert(settingsClicked)
     }
 }

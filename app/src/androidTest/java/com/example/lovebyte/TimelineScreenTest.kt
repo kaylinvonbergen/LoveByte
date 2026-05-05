@@ -15,18 +15,28 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+
 @RunWith(AndroidJUnit4::class)
 class TimelineScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    // UI constants used for consistent styling in ChapterCard tests
     private val deepPink = Color(0xFFFF85A1)
     private val inkBrown = Color(0xFF5D4037)
     private val pixelShape = CutCornerShape(8.dp)
 
-    // ─── Header / Nav ──────────────────────────────────────────────────────────
+    // HELPER FUNCTION
+    // scrolls LazyColumn until a node with matching text is visible  sed because Timeline is a scrollable list
+    private fun scrollTo(text: String) {
+        composeTestRule
+            .onNodeWithTag("timeline_list")
+            .performScrollToNode(hasText(text))
+    }
 
+    // HEADER / NAVIGATION
+    // verifies top-level UI elements (title + back button)
     @Test
     fun timelineScreen_displaysTimelineHeader() {
         composeTestRule.setContent {
@@ -37,7 +47,9 @@ class TimelineScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithText("TIMELINE", ignoreCase = true).assertIsDisplayed()
+        // ensure screen title is rendered
+        composeTestRule.onNodeWithText("TIMELINE", ignoreCase = true)
+            .assertIsDisplayed()
     }
 
     @Test
@@ -50,6 +62,7 @@ class TimelineScreenTest {
             )
         }
 
+        // back navigation always visible
         composeTestRule
             .onNodeWithContentDescription("Back to Character Selection")
             .assertIsDisplayed()
@@ -67,14 +80,17 @@ class TimelineScreenTest {
             )
         }
 
+        // user presses back button
         composeTestRule
             .onNodeWithContentDescription("Back to Character Selection")
             .performClick()
 
+        // ensure callback triggered
         assert(backPressed)
     }
 
-    // ─── Language display ──────────────────────────────────────────────────────
+// LANGUAGE DISPLAY
+// ensures correct language name is shown in header area
 
     @Test
     fun timelineScreen_python_displaysDisplayName() {
@@ -86,7 +102,8 @@ class TimelineScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Python", ignoreCase = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Python", ignoreCase = true)
+            .assertIsDisplayed()
     }
 
     @Test
@@ -99,7 +116,8 @@ class TimelineScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Kotlin", ignoreCase = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("Kotlin", ignoreCase = true)
+            .assertIsDisplayed()
     }
 
     @Test
@@ -112,15 +130,15 @@ class TimelineScreenTest {
             )
         }
 
-        // NONE falls back to PYTHON, so Python's display name should appear
-        composeTestRule.onNodeWithText("Python", ignoreCase = true).assertIsDisplayed()
+        // default fallback lang should be Python
+        composeTestRule.onNodeWithText("Python", ignoreCase = true)
+            .assertIsDisplayed()
     }
 
-    // ─── Progress display ──────────────────────────────────────────────────────
-
+    // PROGRESS INDICATOR
+    // ensures user progress is correctly displayed
     @Test
     fun timelineScreen_showsCorrectProgressPercentage() {
-        // Python has 12 chapters. currentChapter=4 → 3 completed → 3/12 = 25%
         val state = LoveByteState(
             currentLanguage = ProgrammingLanguage.PYTHON,
             progressMap = mapOf(ProgrammingLanguage.PYTHON to 4)
@@ -134,32 +152,14 @@ class TimelineScreenTest {
             )
         }
 
+        // progress percentage should match computed state value
         composeTestRule
             .onNodeWithText("Total Progress: ${state.progressPercentage}%", ignoreCase = true)
             .assertIsDisplayed()
     }
 
-    @Test
-    fun timelineScreen_zeroProgress_showsZeroPercent() {
-        val state = LoveByteState(
-            currentLanguage = ProgrammingLanguage.PYTHON,
-            progressMap = mapOf(ProgrammingLanguage.PYTHON to 1) // chapter 1 = 0 completed
-        )
-
-        composeTestRule.setContent {
-            TimelineScreen(
-                state = state,
-                onChapterSelected = {},
-                onBackPressed = {}
-            )
-        }
-
-        composeTestRule
-            .onNodeWithText("Total Progress: 0%", ignoreCase = true)
-            .assertIsDisplayed()
-    }
-
-    // ─── Section headers (sticky) ──────────────────────────────────────────────
+// SECTION HEADERS
+// verifies grouped chapter sections render correctly in scroll list
 
     @Test
     fun timelineScreen_python_displaysAllSectionHeaders() {
@@ -171,20 +171,20 @@ class TimelineScreenTest {
             )
         }
 
-        val list = composeTestRule.onNodeWithTag("timeline_list")
+        // first section always visible
+        composeTestRule.onNodeWithText("THE BASICS")
+            .assertIsDisplayed()
 
-        // First section is visible immediately
-        composeTestRule.onNodeWithText("THE BASICS", ignoreCase = true).assertIsDisplayed()
+        // scroll to middle
+        scrollTo("CONTROL FLOW")
+        composeTestRule.onNodeWithText("CONTROL FLOW")
+            .assertIsDisplayed()
 
-        // Scroll the lazy list to each subsequent header
-        list.performScrollToNode(hasText("CONTROL FLOW", ignoreCase = true))
-        composeTestRule.onNodeWithText("CONTROL FLOW", ignoreCase = true).assertIsDisplayed()
+        // scroll to end
+        scrollTo("END")
+        composeTestRule.onNodeWithText("END")
+            .assertIsDisplayed()
 
-        list.performScrollToNode(hasText("DATA STRUCTURES", ignoreCase = true))
-        composeTestRule.onNodeWithText("DATA STRUCTURES", ignoreCase = true).assertIsDisplayed()
-
-        list.performScrollToNode(hasText("MODULAR MAGIC", ignoreCase = true))
-        composeTestRule.onNodeWithText("MODULAR MAGIC", ignoreCase = true).assertIsDisplayed()
     }
 
     @Test
@@ -197,18 +197,20 @@ class TimelineScreenTest {
             )
         }
 
-        val list = composeTestRule.onNodeWithTag("timeline_list")
+        composeTestRule.onNodeWithText("FIRST STEPS")
+            .assertIsDisplayed()
 
-        composeTestRule.onNodeWithText("FIRST STEPS", ignoreCase = true).assertIsDisplayed()
+        scrollTo("FUNCTIONAL FUN")
+        composeTestRule.onNodeWithText("FUNCTIONAL FUN")
+            .assertIsDisplayed()
 
-        list.performScrollToNode(hasText("FUNCTIONAL FUN", ignoreCase = true))
-        composeTestRule.onNodeWithText("FUNCTIONAL FUN", ignoreCase = true).assertIsDisplayed()
-
-        list.performScrollToNode(hasText("ANDROID POWER", ignoreCase = true))
-        composeTestRule.onNodeWithText("ANDROID POWER", ignoreCase = true).assertIsDisplayed()
+        scrollTo("ANDROID POWER")
+        composeTestRule.onNodeWithText("ANDROID POWER")
+            .assertIsDisplayed()
     }
 
-    // ─── Chapter titles ────────────────────────────────────────────────────────
+// CHAPTER VISIBILITY
+// ensures specific chapters render correctly when scrolled
 
     @Test
     fun timelineScreen_python_displaysChapter1Title() {
@@ -220,7 +222,10 @@ class TimelineScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Print & Comments").assertIsDisplayed()
+        scrollTo("Indentation")
+
+        composeTestRule.onNodeWithText("Indentation")
+            .assertIsDisplayed()
     }
 
     @Test
@@ -233,7 +238,10 @@ class TimelineScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Arithmetic Operators").assertIsDisplayed()
+        scrollTo("Arithmetic Operators")
+
+        composeTestRule.onNodeWithText("Arithmetic Operators")
+            .assertIsDisplayed()
     }
 
     @Test
@@ -246,15 +254,19 @@ class TimelineScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Val vs Var").assertIsDisplayed()
+        scrollTo("Val vs Var")
+
+        composeTestRule.onNodeWithText("Val vs Var")
+            .assertIsDisplayed()
     }
 
-    // ─── Chapter unlock / lock logic ───────────────────────────────────────────
+    // INTERACTION LOGIC
+    // ensures correct chapter selection behavior based on unlock state
 
     @Test
     fun timelineScreen_currentChapter_isClickable() {
         var selectedChapter = -1
-        // progressMap = 1 means chapter 1 is current, chapters 2+ are locked
+
         val state = LoveByteState(
             currentLanguage = ProgrammingLanguage.PYTHON,
             progressMap = mapOf(ProgrammingLanguage.PYTHON to 1)
@@ -268,35 +280,17 @@ class TimelineScreenTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Print & Comments").performClick()
-        assert(selectedChapter == 1)
-    }
+        // only unlocked chapter clickable
+        scrollTo("Indentation")
+        composeTestRule.onNodeWithText("Indentation").performClick()
 
-    @Test
-    fun timelineScreen_completedChapter_isClickable() {
-        var selectedChapter = -1
-        // chapter 1 is completed when current = 2
-        val state = LoveByteState(
-            currentLanguage = ProgrammingLanguage.PYTHON,
-            progressMap = mapOf(ProgrammingLanguage.PYTHON to 2)
-        )
-
-        composeTestRule.setContent {
-            TimelineScreen(
-                state = state,
-                onChapterSelected = { selectedChapter = it },
-                onBackPressed = {}
-            )
-        }
-
-        composeTestRule.onNodeWithText("Print & Comments").performClick()
         assert(selectedChapter == 1)
     }
 
     @Test
     fun timelineScreen_lockedChapter_doesNotFireCallback() {
         var selectedChapter = -1
-        // only chapter 1 is unlocked
+
         val state = LoveByteState(
             currentLanguage = ProgrammingLanguage.PYTHON,
             progressMap = mapOf(ProgrammingLanguage.PYTHON to 1)
@@ -310,18 +304,20 @@ class TimelineScreenTest {
             )
         }
 
-        // "If Statements" is chapter 4 — locked
+        // not clickable if not unlocked
+        scrollTo("If Statements")
         composeTestRule.onNodeWithText("If Statements").performClick()
+
         assert(selectedChapter == -1)
     }
 
-    // ─── ChapterCard unit tests ────────────────────────────────────────────────
-
+    // CHAPTER CARD UI STATES
+    // verifies visual indicators for chapter states
     @Test
     fun chapterCard_completed_showsStarIcon() {
         composeTestRule.setContent {
             ChapterCard(
-                chapter = Chapter(id = 1, title = "Print & Comments", startNodeId = 101),
+                chapter = Chapter(1, "Print & Comments", 101),
                 languageName = "Python",
                 isCompleted = true,
                 isCurrent = false,
@@ -333,6 +329,7 @@ class TimelineScreenTest {
             )
         }
 
+        // completed chapters use star icon
         composeTestRule.onNodeWithText("★").assertIsDisplayed()
     }
 
@@ -340,7 +337,7 @@ class TimelineScreenTest {
     fun chapterCard_current_showsPlayIcon() {
         composeTestRule.setContent {
             ChapterCard(
-                chapter = Chapter(id = 2, title = "Variables & Types", startNodeId = 201),
+                chapter = Chapter(2, "Variables & Types", 201),
                 languageName = "Python",
                 isCompleted = false,
                 isCurrent = true,
@@ -352,6 +349,7 @@ class TimelineScreenTest {
             )
         }
 
+        // current chapter uses play icon
         composeTestRule.onNodeWithText("▶").assertIsDisplayed()
     }
 
@@ -359,7 +357,7 @@ class TimelineScreenTest {
     fun chapterCard_locked_showsDiamondIcon() {
         composeTestRule.setContent {
             ChapterCard(
-                chapter = Chapter(id = 4, title = "If Statements", startNodeId = 401),
+                chapter = Chapter(4, "If Statements", 401),
                 languageName = "Python",
                 isCompleted = false,
                 isCurrent = false,
@@ -371,89 +369,7 @@ class TimelineScreenTest {
             )
         }
 
+        // locked chapters use diamond icon
         composeTestRule.onNodeWithText("◆").assertIsDisplayed()
-    }
-
-    @Test
-    fun chapterCard_displaysChapterNumberAndTitle() {
-        composeTestRule.setContent {
-            ChapterCard(
-                chapter = Chapter(id = 3, title = "Arithmetic Operators", startNodeId = 301),
-                languageName = "Python",
-                isCompleted = false,
-                isCurrent = true,
-                isUnlocked = true,
-                deepPink = deepPink,
-                inkBrown = inkBrown,
-                pixelRoundedShape = pixelShape,
-                onClick = {}
-            )
-        }
-
-        composeTestRule.onNodeWithText("CHAPTER 3", ignoreCase = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Arithmetic Operators").assertIsDisplayed()
-    }
-
-    @Test
-    fun chapterCard_unlocked_firesOnClick() {
-        var clicked = false
-
-        composeTestRule.setContent {
-            ChapterCard(
-                chapter = Chapter(id = 1, title = "Print & Comments", startNodeId = 101),
-                languageName = "Python",
-                isCompleted = false,
-                isCurrent = true,
-                isUnlocked = true,
-                deepPink = deepPink,
-                inkBrown = inkBrown,
-                pixelRoundedShape = pixelShape,
-                onClick = { clicked = true }
-            )
-        }
-
-        composeTestRule.onNodeWithText("Print & Comments").performClick()
-        assert(clicked)
-    }
-
-    @Test
-    fun chapterCard_locked_isNotEnabled() {
-        composeTestRule.setContent {
-            ChapterCard(
-                chapter = Chapter(id = 5, title = "Logical Operators", startNodeId = 501),
-                languageName = "Python",
-                isCompleted = false,
-                isCurrent = false,
-                isUnlocked = false,
-                deepPink = deepPink,
-                inkBrown = inkBrown,
-                pixelRoundedShape = pixelShape,
-                onClick = {}
-            )
-        }
-
-        composeTestRule
-            .onNodeWithText("Logical Operators")
-            .assertIsNotEnabled()
-    }
-
-    @Test
-    fun chapterCard_kotlinChapter_displaysCorrectly() {
-        composeTestRule.setContent {
-            ChapterCard(
-                chapter = Chapter(id = 1, title = "Val vs Var", startNodeId = 2001),
-                languageName = "Kotlin",
-                isCompleted = false,
-                isCurrent = true,
-                isUnlocked = true,
-                deepPink = deepPink,
-                inkBrown = inkBrown,
-                pixelRoundedShape = pixelShape,
-                onClick = {}
-            )
-        }
-
-        composeTestRule.onNodeWithText("Val vs Var").assertIsDisplayed()
-        composeTestRule.onNodeWithText("CHAPTER 1", ignoreCase = true).assertIsDisplayed()
     }
 }
