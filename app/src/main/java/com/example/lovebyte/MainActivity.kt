@@ -238,9 +238,8 @@ class MainActivity : ComponentActivity() {
                                     viewModel.reopenOnboarding()
                                     navController.navigate("home")
                                 },
-                                onChangeProficiency = {
-                                    viewModel.openProficiencySettings()
-                                    navController.navigate("home")
+                                onChangeProficiency = { pythonLevel, kotlinLevel ->
+                                    viewModel.applyOnboardingPlacement(pythonLevel, kotlinLevel)
                                 },
                                 onBackClicked = {
                                     navController.popBackStack()
