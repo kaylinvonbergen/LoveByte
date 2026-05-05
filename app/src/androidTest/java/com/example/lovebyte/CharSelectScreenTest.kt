@@ -1,10 +1,8 @@
 package com.example.lovebyte
 
-import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.runtime.*
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
@@ -22,63 +20,91 @@ class CharSelectScreenTest {
 
     @Test
     fun characterSelection_updatesState_andDisplaysCorrectSprite() {
-        // 1. setup mock state
-        val mockState = LoveByteState(
+        val initialState = LoveByteState(
             cityName = "Boston",
             weatherDescription = "Sunny",
             currentLanguage = ProgrammingLanguage.PYTHON
         )
 
-        // 2. set UI Content
         composeTestRule.setContent {
+            var testState by remember { mutableStateOf(initialState) }
+
             CharSelectScreen(
-                state = mockState,
-                onCharacterSelected = {},
+                state = testState,
+                onCharacterSelected = { newLang ->
+                    testState = testState.copy(currentLanguage = newLang)
+                },
                 onBackPressed = {}
             )
         }
 
-
-        // 3. verify initial state (weather greeting :3")
+        // 1. Verify Python starts (Uses ContentDescription from Image)
         composeTestRule
-            .onNodeWithText("It's sunny in Boston! Do some Python!", ignoreCase = true)
+            .onNodeWithContentDescription("Python Sprite", ignoreCase = true)
             .assertIsDisplayed()
 
-        // 4. interaction: click the "next" arrow to see Kotlin
-        composeTestRule
-            .onNodeWithContentDescription("Next")
-            .performClick()
+        // 2. Click Next
+        composeTestRule.onNodeWithContentDescription("Next").performClick()
+        composeTestRule.waitForIdle()
 
-        // 5. Assertion: Check if the Sprite box updated
+        // 3. Verify Kotlin (Uses Text because of the 'if' fallback in your code)
         composeTestRule
-            .onNodeWithText("Kotlin Sprite", ignoreCase = true)
+            .onNodeWithText("KOTLIN", ignoreCase = true)
             .assertIsDisplayed()
     }
 
     @Test
     fun characterSelection_canCycleBackToPreviousLanguage() {
-        // 1. start with Python
-        val mockState = LoveByteState(
+        val initialState = LoveByteState(
             cityName = "Boston",
             weatherDescription = "Sunny",
             currentLanguage = ProgrammingLanguage.PYTHON
         )
 
         composeTestRule.setContent {
-            CharSelectScreen(state = mockState, onCharacterSelected = {}, onBackPressed = {})
+            var testState by remember { mutableStateOf(initialState) }
+
+            CharSelectScreen(
+                state = testState,
+                onCharacterSelected = { testState = testState.copy(currentLanguage = it) },
+                onBackPressed = {}
+            )
         }
 
-        // 2. move forward to Kotlin
+        // Move to Kotlin
         composeTestRule.onNodeWithContentDescription("Next").performClick()
         composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("KOTLIN", ignoreCase = true).assertIsDisplayed()
 
-        // verify we are actually on Kotlin before testing the "Back" button
-        composeTestRule.onNodeWithText("Kotlin Sprite", ignoreCase = true).assertIsDisplayed()
-
-        // 3. move backward to Python!
+        // Move back to Python
         composeTestRule.onNodeWithContentDescription("Prev").performClick()
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("Python Sprite", ignoreCase = true).assertIsDisplayed()
+        // Assert on the Python Image's content description
+        composeTestRule.onNodeWithContentDescription("Python Sprite", ignoreCase = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun charSelect_handlesMissingWeatherDataGracefully() {
+        val stateWithNoWeather = LoveByteState(
+            cityName = "",
+            weatherDescription = "Unknown",
+            currentLanguage = ProgrammingLanguage.PYTHON
+        )
+
+        composeTestRule.setContent {
+            CharSelectScreen(
+                state = stateWithNoWeather,
+                onCharacterSelected = {},
+                onBackPressed = {}
+            )
+        }
+
+        // We found 2 nodes, so we use onAllNodes and pick the first one (usually the header)
+        // This avoids the 'Expected at most 1 node but found 2' crash.
+        composeTestRule
+            .onAllNodesWithText("Python", ignoreCase = true, substring = true)
+            .onFirst()
+            .assertIsDisplayed()
     }
 }

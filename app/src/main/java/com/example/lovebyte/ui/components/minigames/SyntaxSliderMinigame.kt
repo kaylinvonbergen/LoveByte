@@ -64,7 +64,7 @@ fun SyntaxSliderMinigame(
     var tiltVelocity by remember { mutableFloatStateOf(0f) }
 
     // color palette
-    val deepPink = Color(0xFFFF85A1)
+    val deepPink = Color(0xFFE85D7A)
     val inkBrown = Color(0xFF5D4037)
     val pixelWhite = Color(0xFFFFFFFF)
     val softMatcha = Color(0xFFD8E2DC)

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Settings
 
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import com.example.lovebyte.ui.components.general.getSpriteForCharacter
 
 import androidx.compose.ui.res.painterResource
@@ -59,7 +60,7 @@ fun HomeScreen(
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val sakuraPink = Color(0xFFFFB7C5)
-    val deepPink = Color(0xFFFF85A1)
+    val deepPink = Color(0xFFE85D7A)
     val inkBrown = Color(0xFF5D4037)
     val pixelWhite = Color(0xFFFFFFFF)
     val pixelRoundedShape = CutCornerShape(8.dp)
@@ -115,7 +116,8 @@ fun HomeScreen(
                         selectedLevel = pythonLevel,
                         onLevelSelected = { pythonLevel = it },
                         inkBrown = inkBrown,
-                        deepPink = deepPink
+                        deepPink = deepPink,
+                        modifier = Modifier.testTag("Python_Row")
                     )
 
                     ProficiencyRow(
@@ -123,7 +125,8 @@ fun HomeScreen(
                         selectedLevel = kotlinLevel,
                         onLevelSelected = { kotlinLevel = it },
                         inkBrown = inkBrown,
-                        deepPink = deepPink
+                        deepPink = deepPink,
+                        modifier = Modifier.testTag("Kotlin_Row")
                     )
                 }
             },
@@ -414,9 +417,10 @@ fun ProficiencyRow(
     selectedLevel: Int,
     onLevelSelected: (Int) -> Unit,
     inkBrown: Color,
-    deepPink: Color
+    deepPink: Color,
+    modifier: Modifier = Modifier
 ) {
-    Column {
+    Column(modifier = modifier) {
         Text(
             text = languageName,
             style = MaterialTheme.typography.labelLarge,
