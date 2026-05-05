@@ -128,7 +128,7 @@ class MainActivity : ComponentActivity() {
                                 state = state.copy(currentLanguage = selectedLang),
                                 onChapterSelected = { chId ->
                                     viewModel.onChapterSelected(chId)
-                                    navController.navigate("chapter/${selectedLang.name}/$chId/false")
+                                    navController.navigate("chapter/${selectedLang.name}/$chId/true")
                                 },
                                 onBackPressed = { navController.popBackStack() }
                             )
@@ -153,7 +153,12 @@ class MainActivity : ComponentActivity() {
                                 onChoiceSelected = { choice -> viewModel.handleChoiceSelected(choice) },
                                 onMinigameResult = { success -> viewModel.handleMinigameResult(success) },
                                 onBackPressed = {
-                                    navController.popBackStack()
+                                    navController.navigate("timeline/${selectedLang.name}") {
+                                        popUpTo("home") {
+                                            inclusive = false
+                                        }
+                                        launchSingleTop = true
+                                    }
                                 },
                                 onNextChapter = {
                                     val nextCh = chapterId + 1

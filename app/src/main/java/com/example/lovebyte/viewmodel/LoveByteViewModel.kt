@@ -399,7 +399,6 @@ class LoveByteViewModel(application: Application) : AndroidViewModel(application
             val chapterPrefix = chapterId.toString()
             val savedNodeMatchesChapter =
                 savedProgress != null &&
-                        savedProgress.chapterId == chapterId &&
                         savedProgress.dialogueIndex.toString().startsWith(chapterPrefix)
 
             val restoredNode = if (savedNodeMatchesChapter) {

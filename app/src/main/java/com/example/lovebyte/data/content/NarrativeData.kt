@@ -861,154 +861,78 @@ private val pythonNodes = mapOf(
     601 to DialogueNode(
         id = 601,
         speaker = "Python",
-        text = "There is one last greenhouse issue. Some data should not be visible all the time.",
+        text = "You're getting comfortable with the syntax. But now we need to talk about the 'invisible' parts of a project. The stuff that keeps the garden running but shouldn't be touched by the public.",
         emotion = "Serious",
         nextNodeId = 602
     ),
     602 to DialogueNode(
         id = 602,
-        speaker = "Python",
-        text = "A good program knows when to reveal information and when to protect it. Today, we are keeping secrets.",
-        emotion = "Thinking",
-        nextNodeId = 603
+        speaker = "System",
+        text = "He points to a line of code in the holographic display: 'API_KEY = \"sk-123456789\"'. It’s glowing a dangerous, bright red.",
+        choices = listOf(
+            DialogueChoice(
+                "Wait, isn't that a security risk?",
+                603,
+                lovePoints = 2
+            ),
+            DialogueChoice(
+                "Is that how you connect to the sensors?",
+                604,
+                friendPoints = 1
+            )
+        )
     ),
     603 to DialogueNode(
         id = 603,
-        speaker = "System",
-        text = "A locked panel glows beside the jasmine plants. The words SECRET SENSOR MODE appear across the screen.",
-        emotion = "Neutral",
-        nextNodeId = 604
+        speaker = "Python",
+        text = "A massive one. Real code isn't meant to live in the shadows—logic should be transparent. But sensitive data? API keys, database passwords? Those must be hidden in places non-devs can't even see.",
+        emotion = "Encouraging",
+        nextNodeId = 605
     ),
     604 to DialogueNode(
         id = 604,
         speaker = "Python",
-        text = "The panel unlocks only when the light level changes. Covering the sensor creates a private little shadow.",
-        emotion = "Explaining",
+        text = "It is, but it's dangerous. Hard-coding a key like that is like leaving your house key in the lock. We NEVER put sensitive keys out in the public where any user—or bot—can scrape them.",
+        emotion = "Thinking",
         nextNodeId = 605
     ),
     605 to DialogueNode(
         id = 605,
         speaker = "Python",
-        text = "What do you think this mini-game is checking?",
-        choices = listOf(
-            DialogueChoice(
-                "Whether the environment changes from light to dark.",
-                606,
-                lovePoints = 1,
-                friendPoints = 1
-            ),
-            DialogueChoice(
-                "Whether I can physically hide a secret.",
-                607,
-                friendPoints = 1
-            ),
-            DialogueChoice(
-                "Whether the phone fears darkness.",
-                608,
-                hatePoints = 1
-            )
-        )
+        text = "We use environment variables. They sit outside the script, in the OS layer. If we don't 'darken' the environment now, that key will leak into the logs. Cover the sensor—now!",
+        emotion = "Excited",
+        triggerEvent = "LIGHT_SENSITIVE_SECRET"
     ),
     606 to DialogueNode(
         id = 606,
         speaker = "Python",
-        text = "Exactly. The program reacts to sensor input. Light changes become information the app can use.",
-        emotion = "Happy",
-        nextNodeId = 609
+        text = "Perfectly masked. Now, instead of a raw key, the code just sees a reference. It's clean, it's secure, and it stays between us and the server. Chapter 6: Complete!",
+        emotion = "Blushing",
+        nextNodeId = null
     ),
     607 to DialogueNode(
         id = 607,
         speaker = "Python",
-        text = "Honestly? Kind of. But technically, we are reading the light sensor and responding to its values.",
-        emotion = "Laughing",
-        nextNodeId = 609
+        text = "The light hit it! That key is compromised now. In the real world, we'd have to revoke that credential immediately. What's the plan for the next attempt?",
+        emotion = "Pensive",
+        choices = listOf(
+            DialogueChoice(
+                "Let's try the shadow move again.",
+                605,
+                friendPoints = 1
+            ),
+            DialogueChoice(
+                "I'll just use a .env file next time.",
+                608,
+                lovePoints = 2
+            )
+        )
     ),
     608 to DialogueNode(
         id = 608,
         speaker = "Python",
-        text = "The phone is very brave. The program is simply watching the light sensor.",
-        emotion = "Pensive",
-        nextNodeId = 609
-    ),
-    609 to DialogueNode(
-        id = 609,
-        speaker = "Python",
-        text = "Ready to unlock the secret panel?",
-        choices = listOf(
-            DialogueChoice(
-                "Yes. I will cover the sensor carefully.",
-                610,
-                lovePoints = 1,
-                friendPoints = 1
-            ),
-            DialogueChoice(
-                "Can I use Private Mode instead?",
-                611,
-                friendPoints = 1
-            ),
-            DialogueChoice(
-                "I will stare directly into the sensor until it obeys.",
-                611,
-                hatePoints = 1
-            )
-        )
-    ),
-    610 to DialogueNode(
-        id = 610,
-        speaker = "Python",
-        text = "Great. Watch the light level, create a shadow, and let the program detect the change.",
-        emotion = "Encouraging",
-        triggerEvent = "LIGHT_SENSITIVE_SECRET"
-    ),
-    611 to DialogueNode(
-        id = 611,
-        speaker = "Python",
-        text = "That works too. A good app should offer an alternate path when sensors are not comfortable or practical.",
-        emotion = "Friendly",
-        triggerEvent = "LIGHT_SENSITIVE_SECRET"
-    ),
-    612 to DialogueNode(
-        id = 612,
-        speaker = "Python",
-        text = "Unlocked! The panel slides open, revealing a tiny glowing note: readable code is a love language.",
-        emotion = "Blushing",
-        nextNodeId = 614
-    ),
-    613 to DialogueNode(
-        id = 613,
-        speaker = "Python",
-        text = "The panel flickers but does not fully unlock. That's okay. Sensor input can be finicky, and retry paths matter.",
-        emotion = "Encouraging",
-        choices = listOf(
-            DialogueChoice(
-                "Let me try the sensor again.",
-                610,
-                friendPoints = 1
-            ),
-            DialogueChoice(
-                "Let's move on. I understand the idea.",
-                614,
-                friendPoints = 1
-            ),
-            DialogueChoice(
-                "The secret can stay secret.",
-                615,
-                hatePoints = 1
-            )
-        )
-    ),
-    614 to DialogueNode(
-        id = 614,
-        speaker = "Python",
-        text = "Sensors let apps respond to the physical world. Light, motion, steps — all of it can become input. Chapter 6: Complete!",
+        text = "Exactly. A .env file keeps the sensitive stuff out of version control and safely in the local environment. You've clearly got the right security mindset—let's move on. Chapter 6: Complete!",
         emotion = "Happy",
-        nextNodeId = null
-    ),
-    615 to DialogueNode(
-        id = 615,
-        speaker = "Python",
-        text = "Mysterious. Slightly inconvenient. But still educational. Chapter 6: Complete!",
-        emotion = "Laughing",
         nextNodeId = null
     ),
 

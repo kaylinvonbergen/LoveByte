@@ -128,11 +128,11 @@ fun GameScreen(
             "LIGHT_SENSITIVE_SECRET" -> {
                 LightSensorMinigame(
                     onFinished = { success ->
-                        if (success) onNodeAdvanced(612) else onNodeAdvanced(613)
+                        if (success) onNodeAdvanced(606) else onNodeAdvanced(607)
                         onMinigameResult(success)
                     },
                     onContinueAnyway = {
-                        onNodeAdvanced(613)
+                        onNodeAdvanced(607)
                         onMinigameResult(false)
                     }
                 )
